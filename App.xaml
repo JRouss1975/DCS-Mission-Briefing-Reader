@@ -1,0 +1,354 @@
+﻿<Application
+    x:Class="DCSMissionReader.App" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:DCSMissionReader"
+    StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <local:StringToUppercaseConverter x:Key="StringToUppercaseConverter" />
+
+        <!-- DCS Theme Design Tokens (High Transparency) -->
+        <Color x:Key="DCS_BackgroundColor">#441B263B</Color>
+        <Color x:Key="DCS_PanelColor">#33253148</Color>
+        <Color x:Key="DCS_HeaderColor">#662F3E5A</Color>
+        <Color x:Key="DCS_AccentBlueColor">#FF4A90E2</Color>
+        <Color x:Key="DCS_BorderColor">#443E4C66</Color>
+        <Color x:Key="DCS_TextColor">#E0E0E0</Color>
+        <Color x:Key="DCS_TextMutedColor">#90A4AE</Color>
+        <Color x:Key="DCS_HighlightColor">#5BA4CF</Color>
+        <Color x:Key="DCS_RedColor">#C0392B</Color>
+        <Color x:Key="DCS_DialogBackgroundColor">#FF1B263B</Color>
+
+        <SolidColorBrush x:Key="DCS_Background" Color="{StaticResource DCS_BackgroundColor}" />
+        <SolidColorBrush x:Key="DCS_Panel" Color="{StaticResource DCS_PanelColor}" />
+        <SolidColorBrush x:Key="DCS_Header" Color="{StaticResource DCS_HeaderColor}" />
+        <SolidColorBrush x:Key="DCS_AccentBlue" Color="{StaticResource DCS_AccentBlueColor}" />
+        <SolidColorBrush x:Key="DCS_Border" Color="{StaticResource DCS_BorderColor}" />
+        <SolidColorBrush x:Key="DCS_Text" Color="{StaticResource DCS_TextColor}" />
+        <SolidColorBrush x:Key="DCS_TextMuted" Color="{StaticResource DCS_TextMutedColor}" />
+        <SolidColorBrush x:Key="DCS_Highlight" Color="{StaticResource DCS_HighlightColor}" />
+        <SolidColorBrush x:Key="DCS_Red" Color="{StaticResource DCS_RedColor}" />
+        <SolidColorBrush x:Key="DCS_DialogBackground" Color="{StaticResource DCS_DialogBackgroundColor}" />
+
+        <!--  Button Style  -->
+        <Style x:Key="DCSButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource DCS_Panel}" />
+            <Setter Property="Foreground" Value="{StaticResource DCS_Text}" />
+            <Setter Property="BorderBrush" Value="{StaticResource DCS_Border}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="10,4" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border
+                            x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="0">
+                            <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{StaticResource DCS_Header}" />
+                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource DCS_Highlight}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="{StaticResource DCS_Highlight}" />
+                                <Setter Property="Foreground" Value="Black" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style BasedOn="{StaticResource DCSButtonStyle}" TargetType="Button" />
+
+        <!--  ToggleButton Style  -->
+        <Style x:Key="DCSToggleButtonStyle" TargetType="ToggleButton">
+            <Setter Property="Background" Value="{StaticResource DCS_Panel}" />
+            <Setter Property="Foreground" Value="{StaticResource DCS_Text}" />
+            <Setter Property="BorderBrush" Value="{StaticResource DCS_Border}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="10,4" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border
+                            x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="0">
+                            <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Background" Value="{StaticResource DCS_Highlight}" />
+                                <Setter Property="Foreground" Value="Black" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource DCS_Highlight}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style BasedOn="{StaticResource DCSToggleButtonStyle}" TargetType="ToggleButton" />
+
+        <!--  CheckBox Style  -->
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{StaticResource DCS_Text}" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Grid Background="Transparent">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border x:Name="bulletBorder" Grid.Column="0" Width="14" Height="14" VerticalAlignment="Center" Background="{StaticResource DCS_Panel}" BorderBrush="{StaticResource DCS_Border}" BorderThickness="1">
+                                <Path x:Name="checkMark" Width="8" Height="8" Margin="1" Data="M0,4 L3,7 L8,0" Stroke="{StaticResource DCS_Highlight}" StrokeThickness="2" Visibility="Collapsed" />
+                            </Border>
+                            <ContentPresenter Grid.Column="1" Margin="6,0,0,0" VerticalAlignment="Center" RecognizesAccessKey="True" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="true">
+                                <Setter TargetName="checkMark" Property="Visibility" Value="Visible" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter TargetName="bulletBorder" Property="BorderBrush" Value="{StaticResource DCS_Highlight}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!--  ListBox Style  -->
+        <Style TargetType="ListBox">
+            <Setter Property="Background" Value="{StaticResource DCS_Panel}" />
+            <Setter Property="BorderBrush" Value="{StaticResource DCS_Border}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="{StaticResource DCS_Text}" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBox">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <ScrollViewer Margin="0">
+                                <ItemsPresenter />
+                            </ScrollViewer>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!--  ListBoxItem Style  -->
+        <Style TargetType="ListBoxItem">
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="border" Background="Transparent" BorderThickness="0">
+                            <ContentPresenter Margin="{TemplateBinding Padding}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource DCS_Header}" />
+                                <Setter Property="Foreground" Value="{StaticResource DCS_Highlight}" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#11FFFFFF" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!--  TextBox Style  -->
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#0D1117" />
+            <Setter Property="Foreground" Value="{StaticResource DCS_Text}" />
+            <Setter Property="BorderBrush" Value="{StaticResource DCS_Border}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CaretBrush" Value="{StaticResource DCS_Highlight}" />
+            <Setter Property="Padding" Value="5" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <ScrollViewer x:Name="PART_ContentHost" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!--  DataGrid Style  -->
+        <Style TargetType="DataGrid">
+            <Setter Property="Background" Value="{StaticResource DCS_Panel}" />
+            <Setter Property="Foreground" Value="{StaticResource DCS_Text}" />
+            <Setter Property="BorderBrush" Value="{StaticResource DCS_Border}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="RowBackground" Value="Transparent" />
+            <Setter Property="AlternatingRowBackground" Value="#08FFFFFF" />
+            <Setter Property="GridLinesVisibility" Value="All" />
+            <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource DCS_Border}" />
+            <Setter Property="VerticalGridLinesBrush" Value="{StaticResource DCS_Border}" />
+            <Setter Property="HeadersVisibility" Value="Column" />
+        </Style>
+
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="{StaticResource DCS_Header}" />
+            <Setter Property="Foreground" Value="{StaticResource DCS_Highlight}" />
+            <Setter Property="BorderBrush" Value="{StaticResource DCS_Border}" />
+            <Setter Property="BorderThickness" Value="0,0,1,1" />
+            <Setter Property="Padding" Value="5" />
+            <Setter Property="FontWeight" Value="Bold" />
+        </Style>
+
+        <!--  Expander Style  -->
+        <Style TargetType="Expander">
+            <Setter Property="Foreground" Value="{StaticResource DCS_Text}" />
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+
+        <!--  TabControl Style  -->
+        <Style TargetType="TabControl">
+            <Setter Property="Background" Value="{StaticResource DCS_Background}" />
+            <Setter Property="BorderBrush" Value="{StaticResource DCS_Border}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabControl">
+                        <Grid ClipToBounds="True" KeyboardNavigation.TabNavigation="Local" SnapsToDevicePixels="true">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <TabPanel
+                                x:Name="headerPanel" Grid.Row="0" Margin="0,0,0,0" Panel.ZIndex="1"
+                                Background="{StaticResource DCS_Panel}" IsItemsHost="true" KeyboardNavigation.TabIndex="1" />
+                            <Border
+                                x:Name="contentPanel" Grid.Row="1"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                KeyboardNavigation.TabNavigation="Local">
+                                <ContentPresenter x:Name="PART_SelectedContentHost" Margin="5" ContentSource="SelectedContent" />
+                            </Border>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!--  TabItem Style  -->
+        <Style TargetType="TabItem">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Grid x:Name="templateRoot" SnapsToDevicePixels="true">
+                            <Border x:Name="mainBorder" Background="Transparent" BorderBrush="{StaticResource DCS_Border}" BorderThickness="1,1,1,0" Margin="0,0,2,0">
+                                <ContentPresenter x:Name="contentPresenter" ContentSource="Header" Focusable="False" HorizontalAlignment="Center" Margin="12,5" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="Center" />
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="false">
+                                <Setter Property="Foreground" Value="{StaticResource DCS_TextMuted}" />
+                                <Setter TargetName="mainBorder" Property="Background" Value="#AA2F3E5A" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter TargetName="mainBorder" Property="Background" Value="#DD4A90E2" />
+                                <Setter Property="Foreground" Value="White" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="true">
+                                <Setter TargetName="mainBorder" Property="Background" Value="#FF2F3E5A" />
+                                <Setter TargetName="mainBorder" Property="BorderThickness" Value="1,1,1,1" />
+                                <Setter Property="Foreground" Value="{StaticResource DCS_Highlight}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ScrollBar Style (Simplified) -->
+        <Style TargetType="ScrollBar">
+            <Setter Property="Background" Value="{StaticResource DCS_Panel}" />
+            <Setter Property="BorderBrush" Value="{StaticResource DCS_Border}" />
+        </Style>
+
+        <!--  ContextMenu Style  -->
+        <Style TargetType="ContextMenu">
+            <Setter Property="Background" Value="#EE2F3E5A" />
+            <Setter Property="BorderBrush" Value="{StaticResource DCS_Border}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="1" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ContextMenu">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!--  MenuItem Style  -->
+        <Style TargetType="MenuItem">
+            <Setter Property="Foreground" Value="{StaticResource DCS_Text}" />
+            <Setter Property="Padding" Value="10,8" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Border x:Name="templateRoot" Background="Transparent" BorderThickness="0" SnapsToDevicePixels="True">
+                            <Grid VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="32" SharedSizeGroup="IconColumn" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <ContentPresenter x:Name="Icon" ContentSource="Icon" Margin="8,0,0,0" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="Center" HorizontalAlignment="Left" />
+                                <ContentPresenter Grid.Column="1" ContentSource="Header" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="Center" />
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="templateRoot" Property="Background" Value="#AA4A90E2" />
+                                <Setter Property="Foreground" Value="White" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!--  Separator Style  -->
+        <Style TargetType="Separator">
+            <Setter Property="Background" Value="{StaticResource DCS_Border}" />
+            <Setter Property="Margin" Value="0,1" />
+            <Setter Property="Height" Value="1" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Separator">
+                        <Border Height="{TemplateBinding Height}" Margin="{TemplateBinding Margin}" Background="{TemplateBinding Background}" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+    </Application.Resources>
+</Application>
