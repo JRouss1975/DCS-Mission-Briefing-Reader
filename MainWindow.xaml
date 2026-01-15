@@ -145,6 +145,7 @@
                         <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" Foreground="{StaticResource DCS_Text}" Text="{Binding CurrentFolderPath}" FontSize="11"/>
                         <TextBlock Margin="5,0,0,0" VerticalAlignment="Center" Foreground="{StaticResource DCS_Highlight}" Text="{Binding NumberOfMissions, StringFormat='({0} missions)'}" FontSize="11"/>
                     </StackPanel>
+                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="NOT MADE OR SUPPORTED BY EAGLE DYNAMICS SA." Foreground="{StaticResource DCS_Red}" FontSize="10" FontWeight="Bold" Opacity="0.7"/>
                     <CheckBox x:Name="IncludeSubfoldersCheckBox" HorizontalAlignment="Right" VerticalAlignment="Center" Checked="IncludeSubfoldersCheckBox_Changed" Content="INCLUDE SUBFOLDERS" Foreground="{StaticResource DCS_TextMuted}" FontSize="11" Unchecked="IncludeSubfoldersCheckBox_Changed" />
                 </Grid>
             </Border>
@@ -363,6 +364,16 @@
                                                 <Ellipse Width="10" Height="10" Fill="White" Stroke="Black" Margin="2,0,0,0"/>
                                                 <TextBlock Text="Waypoint" Foreground="White" Margin="14,0,0,0" FontSize="12"/>
                                             </StackPanel>
+
+                                            <Separator Margin="0,15,0,10" Background="{StaticResource DCS_Border}"/>
+                                            
+                                            <TextBlock Text="OSM Attribution" Foreground="{StaticResource DCS_TextMuted}" FontSize="9" FontWeight="Bold" Margin="0,0,0,5"/>
+                                            <TextBlock Foreground="{StaticResource DCS_TextMuted}" FontSize="9" TextWrapping="Wrap">
+                                                Map data © <Hyperlink NavigateUri="https://www.openstreetmap.org/copyright" RequestNavigate="Hyperlink_RequestNavigate" Foreground="{StaticResource DCS_Highlight}">OpenStreetMap contributors</Hyperlink>
+                                            </TextBlock>
+
+                                            <TextBlock Text="Disclaimer" Foreground="{StaticResource DCS_TextMuted}" FontSize="9" FontWeight="Bold" Margin="0,10,0,5"/>
+                                            <TextBlock Text="THIS MATERIAL IS NOT MADE OR SUPPORTED BY EAGLE DYNAMICS SA." Foreground="{StaticResource DCS_Red}" FontSize="8" FontWeight="Bold" TextWrapping="Wrap"/>
                                         </StackPanel>
                                     </Border>
                                 </Grid>

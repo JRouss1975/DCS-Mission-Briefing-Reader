@@ -2,6 +2,7 @@
 
 **DCS Mission Briefing Reader** is a freeware Windows application designed to read and visualize `.miz` mission files from Digital Combat Simulator (DCS World).
 
+![DCS Mission Briefing Reader](Resources/DCS_MBR_Icon.ico)
 
 ## Features
 
