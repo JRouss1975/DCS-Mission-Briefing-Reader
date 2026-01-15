@@ -4,15 +4,15 @@
 
 ## Features
 
-- **Mission Parsing:** Extracts briefing text, mission details, and taskings from DCS `.miz` files.
+- **Mission Parsing:** Extracts briefing text, mission images, and kneeboard from DCS `.miz` files.
 - **Dynamic Map View:** Visualizes mission elements (units, routes, shapes) on an interactive OpenStreetMap-based map.
-- **Theater Support:** Supports all major DCS theaters including Caucasus, Syria, Persian Gulf, Nevada, Marianas, South Atlantic, Sinai, Kola, and Afghanistan.
+- **Theater Support:** Supports all major DCS theaters including Caucasus, Syria, Persian Gulf, Nevada, Marianas, etc.
 
 ## Installation / Usage
 
 1. Download the latest release.
 2. Run `DCSMissionReader.exe`.
-3. Click "File" -> "Open Mission" and select a `.miz` file.
+3. Click "DCS Missions Folder" -> and select a `.miz` folder.
 
 ## Requirements
 
@@ -35,4 +35,5 @@ This is a WPF application built with C# and .NET 9.
 
 ---
 Created by **Ioannis Roussos** (Jan 2026)
+
 
