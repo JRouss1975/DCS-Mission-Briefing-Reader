@@ -20,10 +20,10 @@
             <StackPanel Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Center">
                 <TextBlock Text="DCS MISSION BRIEFING READER v1.0" Foreground="{StaticResource DCS_Highlight}" FontSize="18" HorizontalAlignment="Center" Margin="0,0,0,10" FontWeight="Bold"/>
                 <TextBlock Text="Created by Ioannis Roussos" Foreground="{StaticResource DCS_Text}" FontSize="14" HorizontalAlignment="Center" Margin="0,0,0,20"/>
-                
+
                 <!-- Attribution & Disclaimer -->
                 <TextBlock Text="THIS MATERIAL IS NOT MADE OR SUPPORTED BY EAGLE DYNAMICS SA." Foreground="{StaticResource DCS_Red}" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,10" TextAlignment="Center" TextWrapping="Wrap"/>
-                
+
                 <TextBlock Foreground="{StaticResource DCS_TextMuted}" FontSize="10" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap">
                     Map data © <Hyperlink NavigateUri="https://www.openstreetmap.org/copyright" RequestNavigate="Hyperlink_RequestNavigate" Foreground="{StaticResource DCS_Highlight}">OpenStreetMap contributors</Hyperlink>
                 </TextBlock>

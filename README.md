@@ -2,17 +2,19 @@
 
 **DCS Mission Briefing Reader** is a freeware Windows application designed to read and visualize `.miz` mission files from Digital Combat Simulator (DCS World).
 
+![DCS Mission Briefing Reader](Resources/DCS_MBR_Icon.ico)
+
 ## Features
 
-- **Mission Parsing:** Extracts briefing text, mission images, and kneeboard from DCS `.miz` files.
+- **Mission Parsing:** Extracts briefing text, mission details, and taskings from DCS `.miz` files.
 - **Dynamic Map View:** Visualizes mission elements (units, routes, shapes) on an interactive OpenStreetMap-based map.
-- **Theater Support:** Supports all major DCS theaters including Caucasus, Syria, Persian Gulf, Nevada, Marianas, etc.
+- **Theater Support:** Supports all major DCS theaters including Caucasus, Syria, Persian Gulf, Nevada, Marianas, South Atlantic, Sinai, Kola, and Afghanistan.
 
 ## Installation / Usage
 
 1. Download the latest release.
 2. Run `DCSMissionReader.exe`.
-3. Click "DCS Missions Folder" -> and select a `.miz` folder.
+3. Click "File" -> "Open Mission" and select a `.miz` file.
 
 ## Requirements
 
@@ -35,5 +37,3 @@ This is a WPF application built with C# and .NET 9.
 
 ---
 Created by **Ioannis Roussos** (Jan 2026)
-
-
