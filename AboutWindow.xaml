@@ -18,7 +18,7 @@
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <TextBlock Text="DCS MISSION BRIEFING READER v1.0" Foreground="{StaticResource DCS_Highlight}" FontSize="18" HorizontalAlignment="Center" Margin="0,0,0,10" FontWeight="Bold"/>
+                <TextBlock Text="DCS MISSION BRIEFING READER v1.1" Foreground="{StaticResource DCS_Highlight}" FontSize="18" HorizontalAlignment="Center" Margin="0,0,0,10" FontWeight="Bold"/>
                 <TextBlock Text="Created by Ioannis Roussos" Foreground="{StaticResource DCS_Text}" FontSize="14" HorizontalAlignment="Center" Margin="0,0,0,20"/>
 
                 <!-- Attribution & Disclaimer -->

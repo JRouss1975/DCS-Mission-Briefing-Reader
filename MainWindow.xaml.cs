@@ -39,6 +39,10 @@ namespace DCSMissionReader
         }
 
         public string FullPath { get; set; }
+        
+        public DateTime FileDate { get; set; }
+        
+        public long FileSize { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
@@ -173,11 +177,14 @@ namespace DCSMissionReader
                 
                 foreach (string file in files)
                 {
+                    var fileInfo = new FileInfo(file);
                     var mission = new MissionFile 
                     { 
                         FileName = System.IO.Path.GetFileName(file),
                         FullPath = file,
-                        Theater = "Loading..."
+                        Theater = "Loading...",
+                        FileDate = fileInfo.LastWriteTime,
+                        FileSize = fileInfo.Length
                     };
                     missionFiles.Add(mission);
                 }
@@ -270,6 +277,48 @@ namespace DCSMissionReader
             }
         }
 
+        private void BriefingExpander_Expanded(object sender, RoutedEventArgs e)
+        {
+            UpdateBriefingSectionRows();
+        }
+
+        private void BriefingExpander_Collapsed(object sender, RoutedEventArgs e)
+        {
+            UpdateBriefingSectionRows();
+        }
+
+        private void UpdateBriefingSectionRows()
+        {
+            if (BriefingSectionsGrid == null) return;
+
+            var expanders = BriefingSectionsGrid.Children.OfType<Expander>().ToList();
+            foreach (var expander in expanders)
+            {
+                if (int.TryParse(expander.Tag?.ToString(), out int rowIndex) && 
+                    rowIndex < BriefingSectionsGrid.RowDefinitions.Count)
+                {
+                    BriefingSectionsGrid.RowDefinitions[rowIndex].Height = expander.IsExpanded 
+                        ? new GridLength(1, GridUnitType.Star) 
+                        : GridLength.Auto;
+                }
+            }
+        }
+
+        private void ExpandAllTasksButton_Click(object sender, RoutedEventArgs e) => SetAllBriefingExpanders(true);
+        private void CollapseAllTasksButton_Click(object sender, RoutedEventArgs e) => SetAllBriefingExpanders(false);
+
+        private void SetAllBriefingExpanders(bool isExpanded)
+        {
+            if (BriefingSectionsGrid == null) return;
+            
+            var expanders = BriefingSectionsGrid.Children.OfType<Expander>().ToList();
+            foreach (var expander in expanders)
+            {
+                expander.IsExpanded = isExpanded;
+            }
+            UpdateBriefingSectionRows();
+        }
+
         private ICollectionView _missionFilesView;
 
         private async void MissionFilesListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -294,13 +343,32 @@ namespace DCSMissionReader
                     var details = await MizParser.ParseMissionAsync(fullPath);
                     _currentMissionDetails = details;
                     
-                    BriefingTextBlock.Text = details.Briefing;
+                    // Load all four briefing sections
+                    BriefingTextBlock.Text = details.BriefingSituation ?? "";
+                    BlueTaskTextBlock.Text = details.BriefingBlueTask ?? "";
+                    RedTaskTextBlock.Text = details.BriefingRedTask ?? "";
+                    NeutralsTaskTextBlock.Text = details.BriefingNeutralsTask ?? "";
+                    
                     Date = details.Date;
                     StartTime = details.StartTime;
-                    Sortie = details.Sortie;
+                    SortieTextBox.Text = details.Sortie ?? "";
                     Theatre = details.Theatre;
                     Weather = details.Weather;
                     FlightsDataGrid.ItemsSource = details.FlightSlots;
+                    
+                    // Populate required mods list
+                    if (details.RequiredModules != null && details.RequiredModules.Count > 0)
+                    {
+                        RequiredModsListBox.ItemsSource = details.RequiredModules;
+                        RequiredModsListBox.Visibility = Visibility.Visible;
+                        NoModsText.Visibility = Visibility.Collapsed;
+                    }
+                    else
+                    {
+                        RequiredModsListBox.ItemsSource = null;
+                        RequiredModsListBox.Visibility = Visibility.Collapsed;
+                        NoModsText.Visibility = Visibility.Visible;
+                    }
 
                     // Draw full mission map with OSM background
                     await DrawMissionMapAsync();
@@ -357,8 +425,14 @@ namespace DCSMissionReader
                 {
                     ShowCustomDialog("Error", $"Error reading file: {ex.Message}", showCancel: false);
                     BriefingTextBlock.Text = "Failed to load briefing.";
+                    BlueTaskTextBlock.Text = "";
+                    RedTaskTextBlock.Text = "";
+                    NeutralsTaskTextBlock.Text = "";
                     ImagesItemsControl.ItemsSource = null;
                     KneeboardItemsControl.ItemsSource = null;
+                    RequiredModsListBox.ItemsSource = null;
+                    RequiredModsListBox.Visibility = Visibility.Collapsed;
+                    NoModsText.Visibility = Visibility.Visible;
                 }
             }
         }
@@ -829,6 +903,60 @@ namespace DCSMissionReader
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
             e.Handled = true;
         }
+
+        #region Briefing Update
+
+        private async void UpdateBriefingButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(CurrentMissionPath) || !File.Exists(CurrentMissionPath))
+            {
+                ShowCustomDialog("Error", "No mission file is currently selected.", showCancel: false);
+                return;
+            }
+
+            // Get all four briefing sections plus sortie
+            string situationText = BriefingTextBlock.Text;
+            string blueTaskText = BlueTaskTextBlock.Text;
+            string redTaskText = RedTaskTextBlock.Text;
+            string neutralsTaskText = NeutralsTaskTextBlock.Text;
+            string sortieText = SortieTextBox.Text;
+
+            var confirm = ShowCustomDialog("Confirm Save", $"Save all briefing changes to:\n{CurrentMissionPath}?\n\nThis will update Sortie, Situation, Blue Tasks, Red Tasks, and Neutrals sections.", isConfirmation: true);
+            if (confirm.Result != true) return;
+
+            try
+            {
+                await MizParser.UpdateAllBriefingsAsync(CurrentMissionPath, situationText, redTaskText, blueTaskText, neutralsTaskText, sortieText);
+                ShowCustomDialog("Success", "All briefing sections updated successfully!", showCancel: false);
+            }
+            catch (Exception ex)
+            {
+                ShowCustomDialog("Error", $"Failed to update briefing: {ex.Message}", showCancel: false);
+            }
+        }
+
+        #endregion
+
+        #region Sorting
+
+        private void SortAZButton_Click(object sender, RoutedEventArgs e) => ApplySorting("FileName", ListSortDirection.Ascending);
+
+        private void SortZAButton_Click(object sender, RoutedEventArgs e) => ApplySorting("FileName", ListSortDirection.Descending);
+
+        private void SortDateButton_Click(object sender, RoutedEventArgs e) => ApplySorting("FileDate", ListSortDirection.Descending);
+
+        private void SortSizeButton_Click(object sender, RoutedEventArgs e) => ApplySorting("FileSize", ListSortDirection.Descending);
+
+        private void ApplySorting(string propertyName, ListSortDirection direction)
+        {
+            if (_missionFilesView == null) return;
+
+            _missionFilesView.SortDescriptions.Clear();
+            _missionFilesView.SortDescriptions.Add(new SortDescription(propertyName, direction));
+            _missionFilesView.Refresh();
+        }
+
+        #endregion
         #endregion
     }
 }

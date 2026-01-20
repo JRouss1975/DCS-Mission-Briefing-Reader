@@ -222,6 +222,64 @@
             <Setter Property="Background" Value="Transparent" />
         </Style>
 
+        <!--  Briefing Expander Style (Full Width Header)  -->
+        <Style x:Key="BriefingExpanderStyle" TargetType="Expander">
+            <Setter Property="Foreground" Value="{StaticResource DCS_Text}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Expander">
+                        <DockPanel>
+                            <ToggleButton x:Name="HeaderSite" DockPanel.Dock="Top"
+                                          IsChecked="{Binding IsExpanded, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                          HorizontalContentAlignment="Stretch">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="Transparent">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <Path x:Name="arrow" Grid.Column="0" Margin="8,0,8,0"
+                                                      VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                      Data="M0,0 L4,4 L8,0" Stroke="{StaticResource DCS_Highlight}"
+                                                      StrokeThickness="2" RenderTransformOrigin="0.5,0.5">
+                                                    <Path.RenderTransform>
+                                                        <RotateTransform Angle="0" />
+                                                    </Path.RenderTransform>
+                                                </Path>
+                                                <ContentPresenter Grid.Column="1" HorizontalAlignment="Stretch" 
+                                                                  VerticalAlignment="Center" ContentSource="Content" />
+                                            </Grid>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsChecked" Value="False">
+                                                <Setter TargetName="arrow" Property="RenderTransform">
+                                                    <Setter.Value>
+                                                        <RotateTransform Angle="-90" />
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                                <ContentPresenter ContentSource="Header" HorizontalAlignment="Stretch" />
+                            </ToggleButton>
+                            <ContentPresenter x:Name="ExpandSite" DockPanel.Dock="Bottom"
+                                              Visibility="Collapsed" HorizontalAlignment="Stretch" />
+                        </DockPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsExpanded" Value="True">
+                                <Setter TargetName="ExpandSite" Property="Visibility" Value="Visible" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!--  TabControl Style  -->
         <Style TargetType="TabControl">
             <Setter Property="Background" Value="{StaticResource DCS_Background}" />

@@ -10,7 +10,11 @@ namespace DCSMissionReader
 {
     public class MissionDetails
     {
-        public string Briefing { get; set; }
+        public string Briefing { get; set; }  // Situation (descriptionText) - kept for backward compatibility
+        public string BriefingSituation { get; set; }  // Situation (descriptionText)
+        public string BriefingRedTask { get; set; }     // Red Tasks (descriptionRedTask)
+        public string BriefingBlueTask { get; set; }    // Blue Tasks (descriptionBlueTask)
+        public string BriefingNeutralsTask { get; set; } // Neutrals (descriptionNeutralsTask)
         public string Theatre { get; set; }
         public string Sortie { get; set; }
         public string Date { get; set; }
@@ -22,6 +26,15 @@ namespace DCSMissionReader
         public List<FlightSlot> FlightSlots { get; set; } = new List<FlightSlot>();
         public List<UnitGroup> AllGroups { get; set; } = new List<UnitGroup>();
         public string DebugInfo { get; set; } = "";
+    }
+
+    public class BriefingKeys
+    {
+        public string SituationKey { get; set; }       // descriptionText
+        public string RedTaskKey { get; set; }          // descriptionRedTask
+        public string BlueTaskKey { get; set; }         // descriptionBlueTask
+        public string NeutralsTaskKey { get; set; }     // descriptionNeutralsTask
+        public string SortieKey { get; set; }           // sortie
     }
 
     public class WeatherInfo
@@ -121,6 +134,167 @@ namespace DCSMissionReader
             catch { return "Unknown"; }
         }
 
+        /// <summary>
+        /// Updates the briefing text in the .miz file's dictionary (backward compatible - updates situation only)
+        /// </summary>
+        public static async Task UpdateBriefingAsync(string mizFilePath, string newBriefingText)
+        {
+            await UpdateAllBriefingsAsync(mizFilePath, newBriefingText, null, null, null);
+        }
+
+        /// <summary>
+        /// Updates all briefing sections including sortie in the .miz file's dictionary
+        /// </summary>
+        public static async Task UpdateAllBriefingsAsync(string mizFilePath, string situationText, string redTaskText, string blueTaskText, string neutralsTaskText, string sortieText = null)
+        {
+            // First, read the mission file to find all briefing keys
+            BriefingKeys briefingKeys = null;
+            string dictionaryContent = null;
+
+            using (var fs = new FileStream(mizFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (ZipArchive archive = new ZipArchive(fs, ZipArchiveMode.Read))
+            {
+                string missionContent = await ReadEntryAsync(archive, "mission");
+                if (!string.IsNullOrEmpty(missionContent))
+                {
+                    briefingKeys = ExtractAllBriefingKeys(missionContent);
+                }
+                dictionaryContent = await ReadEntryAsync(archive, "l10n/DEFAULT/dictionary");
+            }
+
+            if (briefingKeys == null)
+            {
+                throw new InvalidOperationException("Could not find briefing keys in mission file.");
+            }
+
+            if (string.IsNullOrEmpty(dictionaryContent))
+            {
+                throw new InvalidOperationException("Could not find dictionary file in mission archive.");
+            }
+
+            string newDictionaryContent = dictionaryContent;
+
+            // Update Situation (descriptionText) if key exists and text is provided
+            if (!string.IsNullOrEmpty(briefingKeys.SituationKey) && situationText != null)
+            {
+                string escapedText = EscapeLuaString(situationText);
+                var regex = new Regex(@"(\[""" + Regex.Escape(briefingKeys.SituationKey) + @"""\]\s*=\s*"")(?:[^""\\]|\\.)*("")", RegexOptions.Singleline);
+                if (regex.IsMatch(newDictionaryContent))
+                {
+                    newDictionaryContent = regex.Replace(newDictionaryContent, $"$1{escapedText}$2");
+                }
+            }
+
+            // Update Red Task (descriptionRedTask) if key exists and text is provided
+            if (!string.IsNullOrEmpty(briefingKeys.RedTaskKey) && redTaskText != null)
+            {
+                string escapedText = EscapeLuaString(redTaskText);
+                var regex = new Regex(@"(\[""" + Regex.Escape(briefingKeys.RedTaskKey) + @"""\]\s*=\s*"")(?:[^""\\]|\\.)*("")", RegexOptions.Singleline);
+                if (regex.IsMatch(newDictionaryContent))
+                {
+                    newDictionaryContent = regex.Replace(newDictionaryContent, $"$1{escapedText}$2");
+                }
+            }
+
+            // Update Blue Task (descriptionBlueTask) if key exists and text is provided
+            if (!string.IsNullOrEmpty(briefingKeys.BlueTaskKey) && blueTaskText != null)
+            {
+                string escapedText = EscapeLuaString(blueTaskText);
+                var regex = new Regex(@"(\[""" + Regex.Escape(briefingKeys.BlueTaskKey) + @"""\]\s*=\s*"")(?:[^""\\]|\\.)*("")", RegexOptions.Singleline);
+                if (regex.IsMatch(newDictionaryContent))
+                {
+                    newDictionaryContent = regex.Replace(newDictionaryContent, $"$1{escapedText}$2");
+                }
+            }
+
+            // Update Neutrals Task (descriptionNeutralsTask) if key exists and text is provided
+            if (!string.IsNullOrEmpty(briefingKeys.NeutralsTaskKey) && neutralsTaskText != null)
+            {
+                string escapedText = EscapeLuaString(neutralsTaskText);
+                var regex = new Regex(@"(\[""" + Regex.Escape(briefingKeys.NeutralsTaskKey) + @"""\]\s*=\s*"")(?:[^""\\]|\\.)*("")", RegexOptions.Singleline);
+                if (regex.IsMatch(newDictionaryContent))
+                {
+                    newDictionaryContent = regex.Replace(newDictionaryContent, $"$1{escapedText}$2");
+                }
+            }
+
+            // Update Sortie if key exists and text is provided
+            if (!string.IsNullOrEmpty(briefingKeys.SortieKey) && sortieText != null)
+            {
+                string escapedText = EscapeLuaString(sortieText);
+                var regex = new Regex(@"(\[""" + Regex.Escape(briefingKeys.SortieKey) + @"""\]\s*=\s*"")(?:[^""\\]|\\.)*("")", RegexOptions.Singleline);
+                if (regex.IsMatch(newDictionaryContent))
+                {
+                    newDictionaryContent = regex.Replace(newDictionaryContent, $"$1{escapedText}$2");
+                }
+            }
+
+            // Now update the archive with the new dictionary content
+            // We need to copy to a temp file, then replace the original
+            string tempPath = mizFilePath + ".tmp";
+            
+            try
+            {
+                using (var originalFs = new FileStream(mizFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var originalArchive = new ZipArchive(originalFs, ZipArchiveMode.Read))
+                using (var newFs = new FileStream(tempPath, FileMode.Create, FileAccess.Write))
+                using (var newArchive = new ZipArchive(newFs, ZipArchiveMode.Create))
+                {
+                    foreach (var entry in originalArchive.Entries)
+                    {
+                        var newEntry = newArchive.CreateEntry(entry.FullName, CompressionLevel.Optimal);
+                        newEntry.LastWriteTime = entry.LastWriteTime;
+
+                        using (var sourceStream = entry.Open())
+                        using (var destStream = newEntry.Open())
+                        {
+                            if (entry.FullName == "l10n/DEFAULT/dictionary")
+                            {
+                                // Write the modified dictionary
+                                using (var writer = new StreamWriter(destStream))
+                                {
+                                    await writer.WriteAsync(newDictionaryContent);
+                                }
+                            }
+                            else
+                            {
+                                // Copy existing content
+                                await sourceStream.CopyToAsync(destStream);
+                            }
+                        }
+                    }
+                }
+
+                // Replace original with temp file
+                File.Delete(mizFilePath);
+                File.Move(tempPath, mizFilePath);
+            }
+            catch
+            {
+                // Clean up temp file if it exists
+                if (File.Exists(tempPath))
+                {
+                    try { File.Delete(tempPath); } catch { }
+                }
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Escapes a string for Lua format (opposite of UnescapeLuaString)
+        /// </summary>
+        private static string EscapeLuaString(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return text;
+            // Escape backslashes first, then quotes, then newlines
+            string result = text.Replace("\\", "\\\\");
+            result = result.Replace("\"", "\\\"");
+            result = result.Replace("\r\n", "\\n");
+            result = result.Replace("\n", "\\n");
+            result = result.Replace("\r", "\\n");
+            return result;
+        }
+
         public static async Task<MissionDetails> ParseMissionAsync(string mizFilePath)
         {
             var details = new MissionDetails();
@@ -143,17 +317,54 @@ namespace DCSMissionReader
                     details.Date = ExtractDate(missionFileContent);
                     details.StartTime = ExtractStartTime(missionFileContent);
 
-                    string briefingKey = ExtractBriefingKey(missionFileContent);
-                    if (!string.IsNullOrEmpty(briefingKey) && !string.IsNullOrEmpty(dictionaryContent))
+                    // Extract all four briefing sections
+                    var briefingKeys = ExtractAllBriefingKeys(missionFileContent);
+                    if (!string.IsNullOrEmpty(dictionaryContent))
                     {
-                        details.Briefing = ExtractDictionaryValue(dictionaryContent, briefingKey);
+                        // Situation (descriptionText)
+                        if (!string.IsNullOrEmpty(briefingKeys.SituationKey))
+                        {
+                            details.BriefingSituation = ExtractDictionaryValue(dictionaryContent, briefingKeys.SituationKey);
+                        }
+                        if (string.IsNullOrEmpty(details.BriefingSituation)) details.BriefingSituation = "";
+                        
+                        // Red Tasks (descriptionRedTask)
+                        if (!string.IsNullOrEmpty(briefingKeys.RedTaskKey))
+                        {
+                            details.BriefingRedTask = ExtractDictionaryValue(dictionaryContent, briefingKeys.RedTaskKey);
+                        }
+                        if (string.IsNullOrEmpty(details.BriefingRedTask)) details.BriefingRedTask = "";
+                        
+                        // Blue Tasks (descriptionBlueTask)
+                        if (!string.IsNullOrEmpty(briefingKeys.BlueTaskKey))
+                        {
+                            details.BriefingBlueTask = ExtractDictionaryValue(dictionaryContent, briefingKeys.BlueTaskKey);
+                        }
+                        if (string.IsNullOrEmpty(details.BriefingBlueTask)) details.BriefingBlueTask = "";
+                        
+                        // Neutrals (descriptionNeutralsTask)
+                        if (!string.IsNullOrEmpty(briefingKeys.NeutralsTaskKey))
+                        {
+                            details.BriefingNeutralsTask = ExtractDictionaryValue(dictionaryContent, briefingKeys.NeutralsTaskKey);
+                        }
+                        if (string.IsNullOrEmpty(details.BriefingNeutralsTask)) details.BriefingNeutralsTask = "";
                     }
+                    
+                    // Backward compatibility: set Briefing to Situation
+                    details.Briefing = details.BriefingSituation;
                     if (string.IsNullOrEmpty(details.Briefing)) details.Briefing = "No briefing available.";
 
                     if (!string.IsNullOrEmpty(details.Sortie) && details.Sortie.StartsWith("DictKey_"))
                     {
                         string sortieText = ExtractDictionaryValue(dictionaryContent, details.Sortie);
-                        if (!string.IsNullOrEmpty(sortieText)) details.Sortie = sortieText;
+                        if (!string.IsNullOrEmpty(sortieText)) 
+                            details.Sortie = sortieText;
+                        else
+                            details.Sortie = "Untitled Mission";
+                    }
+                    else if (string.IsNullOrEmpty(details.Sortie))
+                    {
+                        details.Sortie = "Untitled Mission";
                     }
 
                     details.Weather = ExtractWeather(missionFileContent);
@@ -493,20 +704,25 @@ namespace DCSMissionReader
 
         private static string ExtractDate(string content)
         {
-            // Find the root ["date"] block which is indented by 4 spaces
-            var dateBlockMatch = Regex.Match(content, @"^    \[""date""\]\s*=\s*\{", RegexOptions.Multiline);
+            // Find the root ["date"] block which is indented by 4 spaces or a single tab
+            var dateBlockMatch = Regex.Match(content, @"^(?:    |\t)\[""date""\]\s*=", RegexOptions.Multiline);
             if (dateBlockMatch.Success)
             {
-                string dateBlock = ExtractBalancedBlock(content, dateBlockMatch.Index + dateBlockMatch.Length - 1);
-                if (!string.IsNullOrEmpty(dateBlock))
+                // Find the opening brace after the match
+                int braceStart = content.IndexOf('{', dateBlockMatch.Index);
+                if (braceStart != -1)
                 {
-                    var dayMatch = Regex.Match(dateBlock, @"\[""Day""\]\s*=\s*(\d+)");
-                    var monthMatch = Regex.Match(dateBlock, @"\[""Month""\]\s*=\s*(\d+)");
-                    var yearMatch = Regex.Match(dateBlock, @"\[""Year""\]\s*=\s*(\d+)");
-
-                    if (dayMatch.Success && monthMatch.Success && yearMatch.Success)
+                    string dateBlock = ExtractBalancedBlock(content, braceStart);
+                    if (!string.IsNullOrEmpty(dateBlock))
                     {
-                        return $"{yearMatch.Groups[1].Value}-{monthMatch.Groups[1].Value.PadLeft(2, '0')}-{dayMatch.Groups[1].Value.PadLeft(2, '0')}";
+                        var dayMatch = Regex.Match(dateBlock, @"\[""Day""\]\s*=\s*(\d+)");
+                        var monthMatch = Regex.Match(dateBlock, @"\[""Month""\]\s*=\s*(\d+)");
+                        var yearMatch = Regex.Match(dateBlock, @"\[""Year""\]\s*=\s*(\d+)");
+
+                        if (dayMatch.Success && monthMatch.Success && yearMatch.Success)
+                        {
+                            return $"{yearMatch.Groups[1].Value}-{monthMatch.Groups[1].Value.PadLeft(2, '0')}-{dayMatch.Groups[1].Value.PadLeft(2, '0')}";
+                        }
                     }
                 }
             }
@@ -515,8 +731,8 @@ namespace DCSMissionReader
 
         private static string ExtractStartTime(string content)
         {
-            // Root keys in DCS mission files are typically indented with exactly 4 spaces
-            var match = Regex.Match(content, @"^    \[""start_time""\]\s*=\s*([-\d\.eE+]+)", RegexOptions.Multiline);
+            // Root keys in DCS mission files are typically indented with exactly 4 spaces or a single tab
+            var match = Regex.Match(content, @"^(?:    |\t)\[""start_time""\]\s*=\s*([-\d\.eE+]+)", RegexOptions.Multiline);
             
             // Fallback if formatting differs
             if (!match.Success) match = Regex.Match(content, @"\[""start_time""\]\s*=\s*([-\d\.eE+]+)");
@@ -623,6 +839,38 @@ namespace DCSMissionReader
             var regex = new Regex(@"\[""descriptionText""\]\s*=\s*""(DictKey_[^""]+)""");
             var match = regex.Match(missionContent);
             return match.Success ? match.Groups[1].Value : null;
+        }
+
+        private static BriefingKeys ExtractAllBriefingKeys(string missionContent)
+        {
+            var keys = new BriefingKeys();
+            
+            // Extract Situation key (descriptionText)
+            var situationRegex = new Regex(@"\[""descriptionText""\]\s*=\s*""(DictKey_[^""]+)""");
+            var situationMatch = situationRegex.Match(missionContent);
+            if (situationMatch.Success) keys.SituationKey = situationMatch.Groups[1].Value;
+            
+            // Extract Red Task key (descriptionRedTask)
+            var redTaskRegex = new Regex(@"\[""descriptionRedTask""\]\s*=\s*""(DictKey_[^""]+)""");
+            var redTaskMatch = redTaskRegex.Match(missionContent);
+            if (redTaskMatch.Success) keys.RedTaskKey = redTaskMatch.Groups[1].Value;
+            
+            // Extract Blue Task key (descriptionBlueTask)
+            var blueTaskRegex = new Regex(@"\[""descriptionBlueTask""\]\s*=\s*""(DictKey_[^""]+)""");
+            var blueTaskMatch = blueTaskRegex.Match(missionContent);
+            if (blueTaskMatch.Success) keys.BlueTaskKey = blueTaskMatch.Groups[1].Value;
+            
+            // Extract Neutrals Task key (descriptionNeutralsTask)
+            var neutralsTaskRegex = new Regex(@"\[""descriptionNeutralsTask""\]\s*=\s*""(DictKey_[^""]+)""");
+            var neutralsTaskMatch = neutralsTaskRegex.Match(missionContent);
+            if (neutralsTaskMatch.Success) keys.NeutralsTaskKey = neutralsTaskMatch.Groups[1].Value;
+            
+            // Extract Sortie key
+            var sortieRegex = new Regex(@"\[""sortie""\]\s*=\s*""(DictKey_[^""]+)""");
+            var sortieMatch = sortieRegex.Match(missionContent);
+            if (sortieMatch.Success) keys.SortieKey = sortieMatch.Groups[1].Value;
+            
+            return keys;
         }
 
         private static string ExtractDictionaryValue(string dictionaryContent, string key)
