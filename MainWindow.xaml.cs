@@ -24,28 +24,28 @@ namespace DCSMissionReader
 
     public class MissionFile : INotifyPropertyChanged
     {
-        private string _fileName;
+        private string _fileName = "";
         public string FileName
         {
             get => _fileName;
             set { _fileName = value; OnPropertyChanged(); }
         }
 
-        private string _theater;
+        private string _theater = "";
         public string Theater
         {
             get => _theater;
             set { _theater = value; OnPropertyChanged(); }
         }
 
-        public string FullPath { get; set; }
+        public string FullPath { get; set; } = "";
         
         public DateTime FileDate { get; set; }
         
         public long FileSize { get; set; }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
@@ -83,22 +83,22 @@ namespace DCSMissionReader
             }
         }
         
-        private string _missionDate;
+        private string _missionDate = "";
         public string Date { get => _missionDate; set { _missionDate = value; OnPropertyChanged(); } }
 
-        private string _missionStartTime;
+        private string _missionStartTime = "";
         public string StartTime { get => _missionStartTime; set { _missionStartTime = value; OnPropertyChanged(); } }
 
-        private string _missionSortie;
+        private string _missionSortie = "";
         public string Sortie { get => _missionSortie; set { _missionSortie = value; OnPropertyChanged(); } }
 
-        private string _missionTheatre;
-        private string _currentMissionPath;
+        private string _missionTheatre = "";
+        private string _currentMissionPath = "";
         public string CurrentMissionPath { get => _currentMissionPath; set { _currentMissionPath = value; OnPropertyChanged(); } }
         public string Theatre { get => _missionTheatre; set { _missionTheatre = value; OnPropertyChanged(); } }
         
-        private WeatherInfo _weather;
-        public WeatherInfo Weather { get => _weather; set { _weather = value; OnPropertyChanged(); OnPropertyChanged(nameof(WeatherStringGround)); OnPropertyChanged(nameof(WeatherString2000)); OnPropertyChanged(nameof(WeatherString8000)); } }
+        private WeatherInfo? _weather;
+        public WeatherInfo? Weather { get => _weather; set { _weather = value; OnPropertyChanged(); OnPropertyChanged(nameof(WeatherStringGround)); OnPropertyChanged(nameof(WeatherString2000)); OnPropertyChanged(nameof(WeatherString8000)); } }
         
         public string WeatherStringGround => Weather != null ? $"{Weather.WindSpeedGround} m/s @ {Weather.WindDirGround}°" : "N/A";
         public string WeatherString2000 => Weather != null ? $"{Weather.WindSpeed2000} m/s @ {Weather.WindDir2000}°" : "N/A";
@@ -106,16 +106,17 @@ namespace DCSMissionReader
 
         public bool IsMissionCopied => !string.IsNullOrEmpty(_copiedMissionPath);
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         // Map state
-        private MissionDetails _currentMissionDetails;
-        private string _currentTheater;
+        private MissionDetails? _currentMissionDetails;
+        private string? _currentTheater;
+        private string? _loadingMissionPath; // Track currently loading mission to prevent race conditions
         
         // GMap Markers
 
@@ -266,12 +267,12 @@ namespace DCSMissionReader
             }
         }
 
-        private static IEnumerable<T> FindVisualChildren<T>(DependencyObject depObj) where T : DependencyObject
+        private static IEnumerable<T> FindVisualChildren<T>(DependencyObject? depObj) where T : DependencyObject
         {
             if (depObj == null) yield break;
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(depObj); i++)
             {
-                DependencyObject child = VisualTreeHelper.GetChild(depObj, i);
+                DependencyObject? child = VisualTreeHelper.GetChild(depObj, i);
                 if (child != null && child is T) yield return (T)child;
                 foreach (T childOfChild in FindVisualChildren<T>(child)) yield return childOfChild;
             }
@@ -319,13 +320,13 @@ namespace DCSMissionReader
             UpdateBriefingSectionRows();
         }
 
-        private ICollectionView _missionFilesView;
+        private ICollectionView? _missionFilesView;
 
         private async void MissionFilesListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (MissionFilesListBox.SelectedItem is MissionFile mission)
             {
-                Dispatcher.BeginInvoke(new Action(() =>
+                _ = Dispatcher.BeginInvoke(new Action(() =>
                 {
                     MissionFilesListBox.ScrollIntoView(mission);
                     var container = MissionFilesListBox.ItemContainerGenerator.ContainerFromItem(mission) as FrameworkElement;
@@ -334,13 +335,33 @@ namespace DCSMissionReader
 
                 string fullPath = mission.FullPath;
                 CurrentMissionPath = fullPath;
+                _loadingMissionPath = fullPath; // Track which mission we're loading
+                
+                // Clear all text fields to prevent data from previous missions from persisting
                 BriefingTextBlock.Text = "Loading...";
+                BlueTaskTextBlock.Text = "";
+                RedTaskTextBlock.Text = "";
+                NeutralsTaskTextBlock.Text = "";
+                SortieTextBox.Text = "";
+                Date = "";
+                StartTime = "";
+                Theatre = "";
+                Weather = null;
+                
                 FlightsDataGrid.ItemsSource = null;
                 ClearMapOverlays();
                 
                 try
                 {
                     var details = await MizParser.ParseMissionAsync(fullPath);
+                    
+                    // Check if this mission is still the one we want to display (user might have switched to another)
+                    if (_loadingMissionPath != fullPath)
+                    {
+                        // User has selected a different mission while this one was loading, discard these results
+                        return;
+                    }
+                    
                     _currentMissionDetails = details;
                     
                     // Load all four briefing sections
@@ -423,16 +444,20 @@ namespace DCSMissionReader
                 }
                 catch (Exception ex)
                 {
-                    ShowCustomDialog("Error", $"Error reading file: {ex.Message}", showCancel: false);
-                    BriefingTextBlock.Text = "Failed to load briefing.";
-                    BlueTaskTextBlock.Text = "";
-                    RedTaskTextBlock.Text = "";
-                    NeutralsTaskTextBlock.Text = "";
-                    ImagesItemsControl.ItemsSource = null;
-                    KneeboardItemsControl.ItemsSource = null;
-                    RequiredModsListBox.ItemsSource = null;
-                    RequiredModsListBox.Visibility = Visibility.Collapsed;
-                    NoModsText.Visibility = Visibility.Visible;
+                    // Only show error if this is still the mission we're trying to load
+                    if (_loadingMissionPath == fullPath)
+                    {
+                        ShowCustomDialog("Error", $"Error reading file: {ex.Message}", showCancel: false);
+                        BriefingTextBlock.Text = "Failed to load briefing.";
+                        BlueTaskTextBlock.Text = "";
+                        RedTaskTextBlock.Text = "";
+                        NeutralsTaskTextBlock.Text = "";
+                        ImagesItemsControl.ItemsSource = null;
+                        KneeboardItemsControl.ItemsSource = null;
+                        RequiredModsListBox.ItemsSource = null;
+                        RequiredModsListBox.Visibility = Visibility.Collapsed;
+                        NoModsText.Visibility = Visibility.Visible;
+                    }
                 }
             }
         }
@@ -490,7 +515,9 @@ namespace DCSMissionReader
 
         private PointLatLng DcsToLatLng(double dcsX, double dcsY)
         {
-            var (lat, lon) = MapHelper.DcsToLatLon(_currentTheater, dcsX, dcsY);
+            // Use current theater or default to Caucasus if not set
+            string theater = _currentTheater ?? "Caucasus";
+            var (lat, lon) = MapHelper.DcsToLatLon(theater, dcsX, dcsY);
             return new PointLatLng(lat, lon);
         }
 
@@ -688,7 +715,7 @@ namespace DCSMissionReader
 
         private void GroupByTheaterCheckBox_Changed(object sender, RoutedEventArgs e) => ApplyGrouping();
 
-        private string _copiedMissionPath = null;
+        private string? _copiedMissionPath = null;
         private bool _includeSubfolders = false;
 
         private void MissionFilesListBox_KeyDown(object sender, KeyEventArgs e)
@@ -788,7 +815,7 @@ namespace DCSMissionReader
             }
         }
 
-        private (bool? Result, string Input) ShowCustomDialog(string title, string message, string defaultValue = null, bool showTextBox = false, bool isConfirmation = false, bool showCancel = true)
+        private (bool? Result, string Input) ShowCustomDialog(string title, string message, string? defaultValue = null, bool showTextBox = false, bool isConfirmation = false, bool showCancel = true)
         {
             var dialog = new Window
             {
@@ -817,7 +844,7 @@ namespace DCSMissionReader
                 Foreground = (Brush)FindResource("DCS_Text")
             });
 
-            TextBox textBox = null;
+            TextBox? textBox = null;
             if (showTextBox)
             {
                 textBox = new TextBox { 
@@ -877,7 +904,13 @@ namespace DCSMissionReader
                     if (!string.IsNullOrEmpty(newName) && newName != mission.FileName)
                     {
                         if (!newName.EndsWith(".miz", StringComparison.OrdinalIgnoreCase)) newName += ".miz";
-                        string newPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(mission.FullPath), newName);
+                        string? directory = System.IO.Path.GetDirectoryName(mission.FullPath);
+                        if (string.IsNullOrEmpty(directory))
+                        {
+                            ShowCustomDialog("Error", "Could not determine mission file directory.", showCancel: false);
+                            return;
+                        }
+                        string newPath = System.IO.Path.Combine(directory, newName);
                         try
                         {
                             File.Move(mission.FullPath, newPath);

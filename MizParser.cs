@@ -10,15 +10,15 @@ namespace DCSMissionReader
 {
     public class MissionDetails
     {
-        public string Briefing { get; set; }  // Situation (descriptionText) - kept for backward compatibility
-        public string BriefingSituation { get; set; }  // Situation (descriptionText)
-        public string BriefingRedTask { get; set; }     // Red Tasks (descriptionRedTask)
-        public string BriefingBlueTask { get; set; }    // Blue Tasks (descriptionBlueTask)
-        public string BriefingNeutralsTask { get; set; } // Neutrals (descriptionNeutralsTask)
-        public string Theatre { get; set; }
-        public string Sortie { get; set; }
-        public string Date { get; set; }
-        public string StartTime { get; set; }
+        public string Briefing { get; set; } = "";  // Situation (descriptionText) - kept for backward compatibility
+        public string BriefingSituation { get; set; } = "";  // Situation (descriptionText)
+        public string BriefingRedTask { get; set; } = "";     // Red Tasks (descriptionRedTask)
+        public string BriefingBlueTask { get; set; } = "";    // Blue Tasks (descriptionBlueTask)
+        public string BriefingNeutralsTask { get; set; } = ""; // Neutrals (descriptionNeutralsTask)
+        public string Theatre { get; set; } = "";
+        public string Sortie { get; set; } = "";
+        public string Date { get; set; } = "";
+        public string StartTime { get; set; } = "";
         public WeatherInfo Weather { get; set; } = new WeatherInfo();
         public List<string> RequiredModules { get; set; } = new List<string>();
         public List<byte[]> Images { get; set; } = new List<byte[]>();
@@ -30,11 +30,11 @@ namespace DCSMissionReader
 
     public class BriefingKeys
     {
-        public string SituationKey { get; set; }       // descriptionText
-        public string RedTaskKey { get; set; }          // descriptionRedTask
-        public string BlueTaskKey { get; set; }         // descriptionBlueTask
-        public string NeutralsTaskKey { get; set; }     // descriptionNeutralsTask
-        public string SortieKey { get; set; }           // sortie
+        public string? SituationKey { get; set; }       // descriptionText
+        public string? RedTaskKey { get; set; }          // descriptionRedTask
+        public string? BlueTaskKey { get; set; }         // descriptionBlueTask
+        public string? NeutralsTaskKey { get; set; }     // descriptionNeutralsTask
+        public string? SortieKey { get; set; }           // sortie
     }
 
     public class WeatherInfo
@@ -51,16 +51,16 @@ namespace DCSMissionReader
 
     public class FlightSlot
     {
-        public string Coalition { get; set; }
-        public string Country { get; set; }
-        public string GroupType { get; set; }
-        public string GroupName { get; set; }
-        public string Task { get; set; }
-        public string UnitName { get; set; }
-        public string Type { get; set; }
-        public string Skill { get; set; }
-        public string CallSign { get; set; }
-        public string UnitId { get; set; }
+        public string Coalition { get; set; } = "";
+        public string Country { get; set; } = "";
+        public string GroupType { get; set; } = "";
+        public string GroupName { get; set; } = "";
+        public string Task { get; set; } = "";
+        public string UnitName { get; set; } = "";
+        public string Type { get; set; } = "";
+        public string Skill { get; set; } = "";
+        public string CallSign { get; set; } = "";
+        public string UnitId { get; set; } = "";
         public double X { get; set; }
         public double Y { get; set; }
         public double Alt { get; set; }
@@ -70,22 +70,22 @@ namespace DCSMissionReader
 
     public class UnitGroup
     {
-        public string Coalition { get; set; }
-        public string Country { get; set; }
-        public string GroupType { get; set; }
-        public string GroupName { get; set; }
-        public string Task { get; set; }
+        public string Coalition { get; set; } = "";
+        public string Country { get; set; } = "";
+        public string GroupType { get; set; } = "";
+        public string GroupName { get; set; } = "";
+        public string Task { get; set; } = "";
         public List<Unit> Units { get; set; } = new List<Unit>();
         public List<Waypoint> Route { get; set; } = new List<Waypoint>();
     }
 
     public class Unit
     {
-        public string Name { get; set; }
-        public string Type { get; set; }
-        public string Skill { get; set; }
-        public string UnitId { get; set; }
-        public string CallSign { get; set; }
+        public string Name { get; set; } = "";
+        public string Type { get; set; } = "";
+        public string Skill { get; set; } = "";
+        public string UnitId { get; set; } = "";
+        public string CallSign { get; set; } = "";
         public double X { get; set; }
         public double Y { get; set; }
         public double Alt { get; set; }
@@ -96,9 +96,9 @@ namespace DCSMissionReader
 
     public class Waypoint
     {
-        public string Name { get; set; }
-        public string Action { get; set; }
-        public string Type { get; set; }
+        public string Name { get; set; } = "";
+        public string Action { get; set; } = "";
+        public string Type { get; set; } = "";
         public double X { get; set; }
         public double Y { get; set; }
         public double Alt { get; set; }
@@ -121,10 +121,10 @@ namespace DCSMissionReader
                     using (var reader = new StreamReader(stream))
                     {
                         // Read line by line until theater is found, no artificial limit
-                        string line;
+                        string? line;
                         while ((line = await reader.ReadLineAsync()) != null)
                         {
-                            var theatre = ExtractLuaField(line, "theatre") ?? ExtractLuaField(line, "theater") ?? ExtractLuaField(line, "map");
+                            var theatre = ExtractLuaField(line, "theatre") ?? ExtractLuaField(line, "theatre") ?? ExtractLuaField(line, "map");
                             if (theatre != null) return theatre;
                         }
                     }
@@ -145,11 +145,11 @@ namespace DCSMissionReader
         /// <summary>
         /// Updates all briefing sections including sortie in the .miz file's dictionary
         /// </summary>
-        public static async Task UpdateAllBriefingsAsync(string mizFilePath, string situationText, string redTaskText, string blueTaskText, string neutralsTaskText, string sortieText = null)
+        public static async Task UpdateAllBriefingsAsync(string mizFilePath, string? situationText, string? redTaskText, string? blueTaskText, string? neutralsTaskText, string? sortieText = null)
         {
             // First, read the mission file to find all briefing keys
-            BriefingKeys briefingKeys = null;
-            string dictionaryContent = null;
+            BriefingKeys? briefingKeys = null;
+            string? dictionaryContent = null;
 
             using (var fs = new FileStream(mizFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             using (ZipArchive archive = new ZipArchive(fs, ZipArchiveMode.Read))
@@ -311,8 +311,8 @@ namespace DCSMissionReader
                         return details;
                     }
 
-                    details.Theatre = ExtractLuaField(missionFileContent, "theatre") ?? ExtractLuaField(missionFileContent, "theater") ?? ExtractLuaField(missionFileContent, "map");
-                    details.Sortie = ExtractLuaField(missionFileContent, "sortie");
+                    details.Theatre = ExtractLuaField(missionFileContent, "theatre") ?? ExtractLuaField(missionFileContent, "theatre") ?? ExtractLuaField(missionFileContent, "map") ?? "Unknown";
+                    details.Sortie = ExtractLuaField(missionFileContent, "sortie") ?? "";
                     details.RequiredModules = ExtractRequiredModules(missionFileContent);
                     details.Date = ExtractDate(missionFileContent);
                     details.StartTime = ExtractStartTime(missionFileContent);
@@ -324,28 +324,28 @@ namespace DCSMissionReader
                         // Situation (descriptionText)
                         if (!string.IsNullOrEmpty(briefingKeys.SituationKey))
                         {
-                            details.BriefingSituation = ExtractDictionaryValue(dictionaryContent, briefingKeys.SituationKey);
+                            details.BriefingSituation = ExtractDictionaryValue(dictionaryContent, briefingKeys.SituationKey) ?? "";
                         }
                         if (string.IsNullOrEmpty(details.BriefingSituation)) details.BriefingSituation = "";
                         
                         // Red Tasks (descriptionRedTask)
                         if (!string.IsNullOrEmpty(briefingKeys.RedTaskKey))
                         {
-                            details.BriefingRedTask = ExtractDictionaryValue(dictionaryContent, briefingKeys.RedTaskKey);
+                            details.BriefingRedTask = ExtractDictionaryValue(dictionaryContent, briefingKeys.RedTaskKey) ?? "";
                         }
                         if (string.IsNullOrEmpty(details.BriefingRedTask)) details.BriefingRedTask = "";
                         
                         // Blue Tasks (descriptionBlueTask)
                         if (!string.IsNullOrEmpty(briefingKeys.BlueTaskKey))
                         {
-                            details.BriefingBlueTask = ExtractDictionaryValue(dictionaryContent, briefingKeys.BlueTaskKey);
+                            details.BriefingBlueTask = ExtractDictionaryValue(dictionaryContent, briefingKeys.BlueTaskKey) ?? "";
                         }
                         if (string.IsNullOrEmpty(details.BriefingBlueTask)) details.BriefingBlueTask = "";
                         
                         // Neutrals (descriptionNeutralsTask)
                         if (!string.IsNullOrEmpty(briefingKeys.NeutralsTaskKey))
                         {
-                            details.BriefingNeutralsTask = ExtractDictionaryValue(dictionaryContent, briefingKeys.NeutralsTaskKey);
+                            details.BriefingNeutralsTask = ExtractDictionaryValue(dictionaryContent, briefingKeys.NeutralsTaskKey) ?? "";
                         }
                         if (string.IsNullOrEmpty(details.BriefingNeutralsTask)) details.BriefingNeutralsTask = "";
                     }
@@ -356,7 +356,7 @@ namespace DCSMissionReader
 
                     if (!string.IsNullOrEmpty(details.Sortie) && details.Sortie.StartsWith("DictKey_"))
                     {
-                        string sortieText = ExtractDictionaryValue(dictionaryContent, details.Sortie);
+                        string? sortieText = ExtractDictionaryValue(dictionaryContent, details.Sortie);
                         if (!string.IsNullOrEmpty(sortieText)) 
                             details.Sortie = sortieText;
                         else
@@ -455,7 +455,7 @@ namespace DCSMissionReader
             var coalitionBlockMatch = Regex.Match(content, @"\[""coalition""\]\s*=\s*\{", RegexOptions.Singleline);
             if (!coalitionBlockMatch.Success) return groups;
 
-            string coalitionBlock = ExtractBalancedBlock(content, coalitionBlockMatch.Index + coalitionBlockMatch.Length - 1);
+            string? coalitionBlock = ExtractBalancedBlock(content, coalitionBlockMatch.Index + coalitionBlockMatch.Length - 1);
             if (string.IsNullOrEmpty(coalitionBlock)) return groups;
 
             // Step 2: Process each side (blue, red)
@@ -464,21 +464,21 @@ namespace DCSMissionReader
                 var sideMatch = Regex.Match(coalitionBlock, @"\[""" + side + @"""\]\s*=\s*\{", RegexOptions.Singleline);
                 if (!sideMatch.Success) continue;
 
-                string sideBlock = ExtractBalancedBlock(coalitionBlock, sideMatch.Index + sideMatch.Length - 1);
+                string? sideBlock = ExtractBalancedBlock(coalitionBlock, sideMatch.Index + sideMatch.Length - 1);
                 if (string.IsNullOrEmpty(sideBlock)) continue;
 
                 // Step 3: Find country blocks within side
                 var countryArrayMatch = Regex.Match(sideBlock, @"\[""country""\]\s*=\s*\{", RegexOptions.Singleline);
                 if (!countryArrayMatch.Success) continue;
 
-                string countryArray = ExtractBalancedBlock(sideBlock, countryArrayMatch.Index + countryArrayMatch.Length - 1);
+                string? countryArray = ExtractBalancedBlock(sideBlock, countryArrayMatch.Index + countryArrayMatch.Length - 1);
                 if (string.IsNullOrEmpty(countryArray)) continue;
 
                 // Step 4: Find each numbered country entry
                 var countryEntries = Regex.Matches(countryArray, @"\[(\d+)\]\s*=\s*\{", RegexOptions.Singleline);
                 foreach (Match ce in countryEntries)
                 {
-                    string countryBlock = ExtractBalancedBlock(countryArray, ce.Index + ce.Length - 1);
+                    string? countryBlock = ExtractBalancedBlock(countryArray, ce.Index + ce.Length - 1);
                     if (string.IsNullOrEmpty(countryBlock)) continue;
 
                     // Get country name
@@ -491,21 +491,21 @@ namespace DCSMissionReader
                         var groupTypeMatch = Regex.Match(countryBlock, @"\[""" + groupType + @"""\]\s*=\s*\{", RegexOptions.Singleline);
                         if (!groupTypeMatch.Success) continue;
 
-                        string groupTypeBlock = ExtractBalancedBlock(countryBlock, groupTypeMatch.Index + groupTypeMatch.Length - 1);
+                        string? groupTypeBlock = ExtractBalancedBlock(countryBlock, groupTypeMatch.Index + groupTypeMatch.Length - 1);
                         if (string.IsNullOrEmpty(groupTypeBlock)) continue;
 
                         // Find "group" array
                         var groupArrayMatch = Regex.Match(groupTypeBlock, @"\[""group""\]\s*=\s*\{", RegexOptions.Singleline);
                         if (!groupArrayMatch.Success) continue;
 
-                        string groupArray = ExtractBalancedBlock(groupTypeBlock, groupArrayMatch.Index + groupArrayMatch.Length - 1);
+                        string? groupArray = ExtractBalancedBlock(groupTypeBlock, groupArrayMatch.Index + groupArrayMatch.Length - 1);
                         if (string.IsNullOrEmpty(groupArray)) continue;
 
                         // Step 6: Parse each individual group
                         var groupEntries = Regex.Matches(groupArray, @"\[(\d+)\]\s*=\s*\{", RegexOptions.Singleline);
                         foreach (Match ge in groupEntries)
                         {
-                            string singleGroupBlock = ExtractBalancedBlock(groupArray, ge.Index + ge.Length - 1);
+                            string? singleGroupBlock = ExtractBalancedBlock(groupArray, ge.Index + ge.Length - 1);
                             if (string.IsNullOrEmpty(singleGroupBlock)) continue;
 
                             var group = new UnitGroup
@@ -527,13 +527,13 @@ namespace DCSMissionReader
                             var unitsMatch = Regex.Match(singleGroupBlock, @"\[""units""\]\s*=\s*\{", RegexOptions.Singleline);
                             if (unitsMatch.Success)
                             {
-                                string unitsBlock = ExtractBalancedBlock(singleGroupBlock, unitsMatch.Index + unitsMatch.Length - 1);
+                                string? unitsBlock = ExtractBalancedBlock(singleGroupBlock, unitsMatch.Index + unitsMatch.Length - 1);
                                 if (!string.IsNullOrEmpty(unitsBlock))
                                 {
                                     var unitEntries = Regex.Matches(unitsBlock, @"\[(\d+)\]\s*=\s*\{", RegexOptions.Singleline);
                                     foreach (Match ue in unitEntries)
                                     {
-                                        string unitBlock = ExtractBalancedBlock(unitsBlock, ue.Index + ue.Length - 1);
+                                        string? unitBlock = ExtractBalancedBlock(unitsBlock, ue.Index + ue.Length - 1);
                                         if (!string.IsNullOrEmpty(unitBlock))
                                         {
                                             var unit = ParseUnit(unitBlock);
@@ -547,19 +547,19 @@ namespace DCSMissionReader
                             var routeMatch = Regex.Match(singleGroupBlock, @"\[""route""\]\s*=\s*\{", RegexOptions.Singleline);
                             if (routeMatch.Success)
                             {
-                                string routeBlock = ExtractBalancedBlock(singleGroupBlock, routeMatch.Index + routeMatch.Length - 1);
+                                string? routeBlock = ExtractBalancedBlock(singleGroupBlock, routeMatch.Index + routeMatch.Length - 1);
                                 if (!string.IsNullOrEmpty(routeBlock))
                                 {
                                     var pointsMatch = Regex.Match(routeBlock, @"\[""points""\]\s*=\s*\{", RegexOptions.Singleline);
                                     if (pointsMatch.Success)
                                     {
-                                        string pointsBlock = ExtractBalancedBlock(routeBlock, pointsMatch.Index + pointsMatch.Length - 1);
+                                        string? pointsBlock = ExtractBalancedBlock(routeBlock, pointsMatch.Index + pointsMatch.Length - 1);
                                         if (!string.IsNullOrEmpty(pointsBlock))
                                         {
                                             var wpEntries = Regex.Matches(pointsBlock, @"\[(\d+)\]\s*=\s*\{", RegexOptions.Singleline);
                                             foreach (Match we in wpEntries)
                                             {
-                                                string wpBlock = ExtractBalancedBlock(pointsBlock, we.Index + we.Length - 1);
+                                                string? wpBlock = ExtractBalancedBlock(pointsBlock, we.Index + we.Length - 1);
                                                 if (!string.IsNullOrEmpty(wpBlock))
                                                 {
                                                     var wp = ParseWaypoint(wpBlock);
@@ -580,10 +580,10 @@ namespace DCSMissionReader
             return groups;
         }
 
-        private static Unit ParseUnit(string unitBlock)
+        private static Unit? ParseUnit(string unitBlock)
         {
             var unit = new Unit();
-
+            // ... (rest of the method stays same, but return type is nullable)
             var nameMatch = Regex.Match(unitBlock, @"\[""name""\]\s*=\s*""([^""]+)""");
             if (nameMatch.Success) unit.Name = nameMatch.Groups[1].Value;
 
@@ -663,7 +663,7 @@ namespace DCSMissionReader
             return wp;
         }
 
-        private static string ExtractBalancedBlock(string content, int startIndex)
+        private static string? ExtractBalancedBlock(string content, int startIndex)
         {
             if (startIndex >= content.Length || content[startIndex] != '{') return null;
 
@@ -692,7 +692,7 @@ namespace DCSMissionReader
             }
         }
 
-        private static string ExtractLuaField(string content, string fieldName)
+        private static string? ExtractLuaField(string content, string fieldName)
         {
             if (string.IsNullOrEmpty(content)) return null;
             // Most resilient regex: find fieldName, then an equals sign, then a quoted value.
@@ -712,7 +712,7 @@ namespace DCSMissionReader
                 int braceStart = content.IndexOf('{', dateBlockMatch.Index);
                 if (braceStart != -1)
                 {
-                    string dateBlock = ExtractBalancedBlock(content, braceStart);
+                    string? dateBlock = ExtractBalancedBlock(content, braceStart);
                     if (!string.IsNullOrEmpty(dateBlock))
                     {
                         var dayMatch = Regex.Match(dateBlock, @"\[""Day""\]\s*=\s*(\d+)");
@@ -834,7 +834,7 @@ namespace DCSMissionReader
             return modules;
         }
 
-        private static string ExtractBriefingKey(string missionContent)
+        private static string? ExtractBriefingKey(string missionContent)
         {
             var regex = new Regex(@"\[""descriptionText""\]\s*=\s*""(DictKey_[^""]+)""");
             var match = regex.Match(missionContent);
@@ -873,9 +873,9 @@ namespace DCSMissionReader
             return keys;
         }
 
-        private static string ExtractDictionaryValue(string dictionaryContent, string key)
+        private static string? ExtractDictionaryValue(string? dictionaryContent, string? key)
         {
-            if (string.IsNullOrEmpty(dictionaryContent)) return null;
+            if (string.IsNullOrEmpty(dictionaryContent) || string.IsNullOrEmpty(key)) return null;
             var regex = new Regex(@"\[""" + Regex.Escape(key) + @"""\]\s*=\s*""((?:[^""\\]|\\.)*)""", RegexOptions.Singleline);
             var match = regex.Match(dictionaryContent);
             if (match.Success) return UnescapeLuaString(match.Groups[1].Value);

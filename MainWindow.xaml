@@ -2,7 +2,7 @@
     x:Class="DCSMissionReader.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:gmap="clr-namespace:GMap.NET.WindowsPresentation;assembly=GMap.NET.WindowsPresentation"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    Title="DCS Mission Briefing Reader v1.1"
+    Title="DCS Mission Briefing Reader v1.1a"
     Width="1200" Height="800" mc:Ignorable="d" Background="Transparent">
 
     <Grid>
@@ -26,7 +26,7 @@
             <!-- DCS Style Top Bar (Simplified) -->
             <Border Grid.Row="0" Grid.ColumnSpan="3" Background="#EE0C121D" BorderBrush="{StaticResource DCS_Border}" BorderThickness="0,0,0,1" Padding="10,8">
                 <Grid>
-                    <TextBlock Text="DCS MISSION BRIEFING READER v1.1" Foreground="{StaticResource DCS_Highlight}" FontWeight="Bold" VerticalAlignment="Center" FontSize="24" HorizontalAlignment="Left"/>
+                    <TextBlock Text="DCS MISSION BRIEFING READER v1.1a" Foreground="{StaticResource DCS_Highlight}" FontWeight="Bold" VerticalAlignment="Center" FontSize="24" HorizontalAlignment="Left"/>
                     <Button x:Name="AboutButton" Content="ABOUT" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource DCSButtonStyle}" Click="AboutButton_Click" Width="80"/>
                 </Grid>
             </Border>
@@ -208,7 +208,7 @@
                                         </StackPanel>
                                         <StackPanel Margin="0,0,30,5">
                                             <TextBlock Text="SORTIE" FontSize="10" Foreground="{StaticResource DCS_Highlight}" FontWeight="Bold"/>
-                                            <TextBox x:Name="SortieTextBox" Foreground="{StaticResource DCS_Text}" FontSize="14" 
+                                            <TextBox x:Name="SortieTextBox" Foreground="{StaticResource DCS_Text}" FontSize="14"
                                                      Background="Transparent" BorderThickness="0,0,0,1" BorderBrush="{StaticResource DCS_Border}"
                                                      MinWidth="150" Padding="0,2"/>
                                         </StackPanel>
@@ -482,7 +482,7 @@
                                                 </DataTemplate>
                                             </ListBox.ItemTemplate>
                                         </ListBox>
-                                        <TextBlock x:Name="NoModsText" Grid.Row="1" Text="No mods required" 
+                                        <TextBlock x:Name="NoModsText" Grid.Row="1" Text="No mods required"
                                                    Foreground="{StaticResource DCS_TextMuted}" FontSize="12" FontStyle="Italic"
                                                    HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"/>
                                     </Grid>
