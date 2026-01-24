@@ -2,8 +2,6 @@
 
 **DCS Mission Briefing Reader** is a freeware Windows application designed to read and visualize `.miz` mission files from Digital Combat Simulator (DCS World).
 
-![DCS Mission Briefing Reader](Resources/DCS_MBR_Icon.ico)
-
 ## Features
 
 - **Mission Parsing:** Extracts briefing text, mission details, and taskings from DCS `.miz` files.
@@ -37,3 +35,4 @@ This is a WPF application built with C# and .NET 9.
 
 ---
 Created by **Ioannis Roussos** (Jan 2026)
+
