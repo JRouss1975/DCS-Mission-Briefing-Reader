@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DCS Mission Briefing Reader — Advanced Search Guide</title>
+<style>
+  @page { margin: 2cm; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.6;
+    color: #e0e0e0;
+    background: #0c121d;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2em;
+  }
+  h1 {
+    font-size: 28pt;
+    color: #f5c542;
+    border-bottom: 2px solid #f5c542;
+    padding-bottom: 0.3em;
+    margin-bottom: 0.5em;
+  }
+  h2 {
+    font-size: 18pt;
+    color: #f5c542;
+    border-bottom: 1px solid #2a3a5a;
+    padding-bottom: 0.2em;
+    margin: 1.5em 0 0.8em 0;
+  }
+  h3 {
+    font-size: 13pt;
+    color: #7ec8e3;
+    margin: 1.2em 0 0.5em 0;
+  }
+  h4 {
+    font-size: 11pt;
+    color: #f5c542;
+    margin: 1em 0 0.3em 0;
+  }
+  p { margin: 0.5em 0; }
+  ul, ol { margin: 0.5em 0 0.5em 1.5em; }
+  li { margin: 0.15em 0; }
+
+  .subtitle {
+    font-size: 13pt;
+    color: #8899bb;
+    margin-bottom: 2em;
+  }
+
+  code, .code {
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-size: 9.5pt;
+    background: #1a2332;
+    color: #c8d6e5;
+    padding: 0.15em 0.4em;
+    border-radius: 3px;
+    border: 1px solid #2a3a5a;
+  }
+  pre {
+    background: #0d1520;
+    border: 1px solid #2a3a5a;
+    border-left: 3px solid #f5c542;
+    padding: 0.8em 1em;
+    margin: 0.8em 0;
+    overflow-x: auto;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-size: 9pt;
+    color: #c8d6e5;
+    line-height: 1.5;
+    border-radius: 4px;
+  }
+  pre .kw { color: #f5c542; }
+  pre .str { color: #7ec8e3; }
+  pre .cm { color: #4a6a8a; font-style: italic; }
+  pre .val { color: #a8d8a8; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.8em 0;
+    font-size: 10pt;
+  }
+  th {
+    background: #1a2332;
+    color: #f5c542;
+    font-weight: 600;
+    text-align: left;
+    padding: 0.5em 0.8em;
+    border: 1px solid #2a3a5a;
+  }
+  td {
+    padding: 0.4em 0.8em;
+    border: 1px solid #2a3a5a;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #0f1825; }
+  tr:nth-child(odd) td { background: #0a121f; }
+
+  .note {
+    background: #1a2332;
+    border-left: 4px solid #7ec8e3;
+    padding: 0.8em 1em;
+    margin: 1em 0;
+    border-radius: 3px;
+  }
+  .tip {
+    background: #1a2832;
+    border-left: 4px solid #a8d8a8;
+    padding: 0.8em 1em;
+    margin: 1em 0;
+    border-radius: 3px;
+  }
+  .example {
+    background: #1d1520;
+    border-left: 4px solid #f5c542;
+    padding: 0.8em 1em;
+    margin: 0.8em 0;
+    border-radius: 3px;
+  }
+  .example strong { color: #f5c542; }
+  .tag {
+    display: inline-block;
+    font-size: 8pt;
+    font-weight: 700;
+    padding: 0.15em 0.6em;
+    border-radius: 3px;
+    margin-right: 0.3em;
+    text-transform: uppercase;
+  }
+  .tag-map { background: #2a4a3a; color: #6ad8a0; }
+  .tag-plane { background: #2a3a5a; color: #7ec8e3; }
+  .tag-type { background: #4a2a30; color: #e87a7a; }
+  .tag-side { background: #3a2a4a; color: #c8a0e8; }
+  .tag-time { background: #3a3a2a; color: #e8d87a; }
+  .tag-other { background: #2a2a2a; color: #a0a0a0; }
+
+  .toc { margin: 2em 0; }
+  .toc a { color: #7ec8e3; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .toc ul { list-style: none; margin: 0; }
+  .toc > ul > li { margin: 0.6em 0; font-weight: 600; }
+  .toc > ul > li > ul > li { font-weight: 400; margin: 0.2em 0; padding-left: 1em; }
+
+  .key { color: #f5c542; font-weight: 600; }
+  .arrow { color: #4a6a8a; }
+  .val { color: #7ec8e3; }
+
+  .footer {
+    margin-top: 3em;
+    padding-top: 1em;
+    border-top: 1px solid #2a3a5a;
+    font-size: 9pt;
+    color: #4a6a8a;
+    text-align: center;
+  }
+  @media print {
+    body { background: white; color: #222; padding: 0; }
+    h1, h2, h3, h4 { color: #1a3a6a; }
+    .subtitle { color: #555; }
+    code, .code { background: #eee; color: #222; border-color: #ccc; }
+    pre { background: #f5f5f5; color: #222; border-left-color: #1a3a6a; }
+    th { background: #ddd; color: #1a3a6a; }
+    td { border-color: #ccc; }
+    tr:nth-child(even) td { background: #f9f9f9; }
+    tr:nth-child(odd) td { background: #fff; }
+    .note, .tip, .example { background: #f5f5f5; }
+    .tag-map { background: #d4edda; color: #155724; }
+    .tag-plane { background: #d4e0ed; color: #1a4a7a; }
+    .tag-type { background: #edd4d4; color: #7a1a1a; }
+    .tag-side { background: #e0d4ed; color: #4a1a7a; }
+    .tag-time { background: #ededd4; color: #6a6a1a; }
+    .tag-other { background: #e0e0e0; color: #333; }
+    .footer { color: #999; }
+    .toc a { color: #1a4a7a; }
+  }
+</style>
+</head>
+<body>
+
+<h1>DCS Mission Briefing Reader</h1>
+<p class="subtitle">Advanced Search Reference Guide — v1.1d</p>
+
+<div class="toc">
+<h2>Table of Contents</h2>
+<ul>
+  <li><a href="#overview">1. Overview</a></li>
+  <li>
+    <a href="#filters">2. Structured Filters (<code>key:value</code>)</a>
+    <ul>
+      <li><a href="#filter-map">2.1 <code>map:</code> — Theatre / Map</a></li>
+      <li><a href="#filter-plane">2.2 <code>plane:</code> — Aircraft</a></li>
+      <li><a href="#filter-type">2.3 <code>type:</code> — Mission Type</a></li>
+      <li><a href="#filter-side">2.4 <code>side:</code> — Coalition</a></li>
+      <li><a href="#filter-country">2.5 <code>country:</code></a></li>
+      <li><a href="#filter-time">2.6 <code>time:</code> — Time of Day</a></li>
+      <li><a href="#filter-like">2.7 <code>like:</code> — Similar File Names</a></li>
+      <li><a href="#filter-exclude">2.8 Negation / Exclusion (<code>-</code>, <code>!</code>)</a></li>
+    </ul>
+  </li>
+  <li>
+    <a href="#auto">3. Auto-Detection — Plain Text Keywords</a>
+    <ul>
+      <li><a href="#auto-aircraft">3.1 Aircraft Detection</a></li>
+      <li><a href="#auto-map">3.2 Map Detection</a></li>
+      <li><a href="#auto-type">3.3 Mission Type Detection</a></li>
+      <li><a href="#auto-time">3.4 Time of Day Detection</a></li>
+      <li><a href="#auto-side">3.5 Coalition Detection</a></li>
+    </ul>
+  </li>
+  <li><a href="#freetext">4. Free-Text Search (FTS)</a></li>
+  <li><a href="#greek">5. Greek Language Support</a></li>
+      <li><a href="#advanced">6. Advanced Techniques</a>
+        <ul>
+          <li><a href="#exclusion">6.4 Negation / Exclusion (<code>-</code>, <code>!</code>)</a></li>
+        </ul>
+      </li>
+      <li><a href="#examples">7. Quick-Reference Examples</a></li>
+      <li><a href="#reset">8. Force Re-Index (Reset Cache)</a></li>
+</ul>
+</div>
+
+<!-- ====================================================================== -->
+<h2 id="overview">1. Overview</h2>
+<p>
+DCS Mission Briefing Reader supports three layers of search that work together:
+</p>
+<ol>
+  <li><strong>Structured Filters</strong> — precise <code>key:value</code> pairs for aircraft, map, mission type, side, time, country, and file-name similarity.</li>
+  <li><strong>Auto-Detection</strong> — plain words like <code>syria</code>, <code>viper</code>, <code>sead</code>, or <code>night</code> are recognized automatically as structured filters without needing the <code>key:</code> prefix.</li>
+  <li><strong>Free-Text Search (FTS5)</strong> — any remaining unrecognised words are searched across briefing text, task descriptions, unit names, sortie, file name, tags, and theatre — all at once.</li>
+</ol>
+<p>
+Words that are recognised by auto-detection are <em>removed</em> from the free-text search and applied as precise structured filters instead. This means <code>f16 sead syria</code> searches <em>only</em> for missions with an F-16 on the Syria map doing SEAD — not every mission that happens to mention those words in the briefing.
+</p>
+
+<div class="tip">
+<strong>Tip:</strong> You can mix all three approaches in a single query: <code>plane:f16 syria night "protect the convoy"</code> filters by F-16 on Syria at night, and also searches the briefing text for "protect the convoy".
+</div>
+
+<!-- ====================================================================== -->
+<h2 id="filters">2. Structured Filters (<code>key:value</code>)</h2>
+
+<p>Use a colon between the key and the value. Supported keys:</p>
+
+<table>
+<tr><th>Key</th><th>Aliases</th><th>Description</th></tr>
+<tr><td><code>map</code></td><td><code>theatre</code>, <code>theater</code></td><td>Theatre / map name</td></tr>
+<tr><td><code>plane</code></td><td><code>aircraft</code>, <code>ac</code>, <code>unit</code></td><td>Aircraft type or nickname</td></tr>
+<tr><td><code>type</code></td><td><code>task</code>, <code>tag</code></td><td>Mission type / role tag</td></tr>
+<tr><td><code>side</code></td><td><code>coalition</code></td><td>Player coalition (blue/red)</td></tr>
+<tr><td><code>country</code></td><td>—</td><td>Player country (substring match)</td></tr>
+<tr><td><code>time</code></td><td>—</td><td>Time of day</td></tr>
+<tr><td><code>like</code></td><td>—</td><td>Find missions with similar file names</td></tr>
+</table>
+
+<div class="note">
+<strong>Note:</strong> <code>key:value</code> pairs are case-insensitive. Multi-word values can be quoted: <code>type:"ground attack"</code>
+</div>
+
+<!-- ---------------------------------------------------------------------- -->
+<h3 id="filter-map">2.1 <code>map:&lt;theatre&gt;</code></h3>
+
+<table>
+<tr><th>Value</th><th>Aliases</th><th>Maps to</th></tr>
+<tr><td><code>caucasus</code></td><td><code>cauc</code>, <code>georgia</code></td><td>Caucasus / Georgia</td></tr>
+<tr><td><code>syria</code></td><td><code>συρια</code></td><td>Syria</td></tr>
+<tr><td><code>persiangulf</code></td><td><code>persian</code>, <code>gulf</code>, <code>pg</code>, <code>hormuz</code></td><td>Persian Gulf</td></tr>
+<tr><td><code>nevada</code></td><td><code>nttr</code>, <code>vegas</code></td><td>Nevada / NTTR</td></tr>
+<tr><td><code>marianaislands</code></td><td><code>marianas</code>, <code>mariana</code>, <code>guam</code></td><td>Marianas Islands</td></tr>
+<tr><td><code>falklands</code></td><td><code>falkland</code>, <code>southatlantic</code>, <code>malvinas</code></td><td>Falklands / South Atlantic</td></tr>
+<tr><td><code>sinaimap</code></td><td><code>sinai</code>, <code>egypt</code></td><td>Sinai Map</td></tr>
+<tr><td><code>kola</code></td><td>—</td><td>Kola</td></tr>
+<tr><td><code>afghanistan</code></td><td><code>afghan</code></td><td>Afghanistan</td></tr>
+<tr><td><code>normandy</code></td><td>—</td><td>Normandy</td></tr>
+<tr><td><code>thechannel</code></td><td><code>channel</code></td><td>The Channel</td></tr>
+<tr><td><code>germanycw</code></td><td><code>germany</code>, <code>cw</code></td><td>Germany (Cold War)</td></tr>
+<tr><td><code>iraq</code></td><td>—</td><td>Iraq</td></tr>
+</table>
+
+<div class="example">
+<strong>Examples:</strong>
+<pre><span class="kw">map</span>:syria
+<span class="kw">theatre</span>:gulf
+<span class="kw">map</span>:nevada
+<span class="kw">theater</span>:"south atlantic"
+</pre>
+</div>
+
+<!-- ---------------------------------------------------------------------- -->
+<h3 id="filter-plane">2.2 <code>plane:&lt;aircraft&gt;</code></h3>
+
+<p>Accepts aircraft nicknames, DCS type codes, or any abbreviation. Matching uses <strong>substring</strong> — <code>f16</code> matches F-16C, F-16A, etc.</p>
+
+<h4>Common Nicknames</h4>
+<table>
+<tr><th>Filter</th><th>Matches (examples)</th></tr>
+<tr><td><code>viper</code></td><td>F-16C, F-16A</td></tr>
+<tr><td><code>hornet</code></td><td>F/A-18C</td></tr>
+<tr><td><code>tomcat</code></td><td>F-14A, F-14B</td></tr>
+<tr><td><code>eagle</code></td><td>F-15C</td></tr>
+<tr><td><code>strikeeagle</code>, <code>mudhen</code></td><td>F-15E</td></tr>
+<tr><td><code>warthog</code>, <code>hog</code></td><td>A-10A, A-10C</td></tr>
+<tr><td><code>falcon</code></td><td>F-16C</td></tr>
+<tr><td><code>phantom</code></td><td>F-4E</td></tr>
+<tr><td><code>flanker</code></td><td>Su-27, Su-33, J-11A</td></tr>
+<tr><td><code>fulcrum</code></td><td>MiG-29A, MiG-29S</td></tr>
+<tr><td><code>fishbed</code></td><td>MiG-21</td></tr>
+<tr><td><code>frogfoot</code></td><td>Su-25, Su-25T</td></tr>
+<tr><td><code>blackshark</code></td><td>Ka-50</td></tr>
+<tr><td><code>hip</code></td><td>Mi-8</td></tr>
+<tr><td><code>hind</code></td><td>Mi-24</td></tr>
+<tr><td><code>huey</code></td><td>UH-1H</td></tr>
+<tr><td><code>apache</code></td><td>AH-64D</td></tr>
+<tr><td><code>harrier</code></td><td>AV-8B</td></tr>
+<tr><td><code>mirage</code></td><td>Mirage 2000C, Mirage F1</td></tr>
+<tr><td><code>viggen</code></td><td>AJS-37</td></tr>
+<tr><td><code>thunder</code></td><td>JF-17</td></tr>
+<tr><td><code>tiger</code></td><td>F-5E</td></tr>
+<tr><td><code>sabre</code></td><td>F-86F</td></tr>
+<tr><td><code>mustang</code></td><td>P-51D</td></tr>
+<tr><td><code>spitfire</code></td><td>Spitfire LF Mk.IX</td></tr>
+<tr><td><code>skyhawk</code></td><td>A-4E</td></tr>
+<tr><td><code>gazelle</code></td><td>SA342</td></tr>
+<tr><td><code>chinook</code></td><td>CH-47F</td></tr>
+<tr><td><code>kiowa</code></td><td>OH-58D</td></tr>
+<tr><td><code>blackhawk</code></td><td>UH-60A, UH-60L</td></tr>
+<tr><td><code>hercules</code></td><td>C-130</td></tr>
+<tr><td><code>helo</code>, <code>helicopter</code></td><td>All helicopters</td></tr>
+<tr><td><code>carrier</code></td><td>Carrier-capable aircraft</td></tr>
+</table>
+
+<h4>DCS Type Codes (also work directly)</h4>
+<p>
+<code>f4</code>, <code>f14</code>, <code>f15</code>, <code>f15e</code>, <code>f16</code>, <code>f18</code>, <code>fa18</code>, <code>a10</code>, <code>av8b</code>, <code>m2000</code>, <code>jf17</code>, <code>f5</code>, <code>f86</code>, <code>a4</code>,
+<code>su27</code>, <code>su25</code>, <code>su33</code>, <code>su30</code>, <code>su34</code>, <code>su24</code>,
+<code>mig29</code>, <code>mig21</code>, <code>mig23</code>, <code>mig25</code>, <code>mig31</code>, <code>mig15</code>, <code>mig19</code>,
+<code>ka50</code>, <code>mi8</code>, <code>mi24</code>, <code>mi26</code>, <code>mi28</code>,
+<code>uh1</code>, <code>ah64</code>, <code>ah1</code>, <code>sa342</code>, <code>ch47</code>, <code>ch53</code>, <code>oh58</code>, <code>uh60</code>,
+<code>p51</code>, <code>bf109</code>, <code>fw190</code>,
+<code>kc135</code>, <code>kc130</code>, <code>il78</code>,
+<code>e3</code>, <code>e2</code>, <code>a50</code>
+</p>
+
+<h4>Variants with Suffixes</h4>
+<p>Type codes with variant suffixes are matched automatically: <code>f15c</code> matches F-15C, <code>f16c</code> matches F-16C, <code>mig29s</code> matches MiG-29S.</p>
+
+<div class="example">
+<strong>Examples:</strong>
+<pre><span class="kw">plane</span>:viper
+<span class="kw">plane</span>:f18
+<span class="kw">aircraft</span>:phantom
+<span class="kw">ac</span>:"f-16c"
+<span class="kw">unit</span>:tomcat
+</pre>
+</div>
+
+<!-- ---------------------------------------------------------------------- -->
+<h3 id="filter-type">2.3 <code>type:&lt;mission-type&gt;</code></h3>
+
+<table>
+<tr><th>Value</th><th>Aliases</th><th>Canonical Tag</th></tr>
+<tr><td><code>cap</code></td><td><code>barcap</code>, <code>tarcap</code></td><td>CAP</td></tr>
+<tr><td><code>intercept</code></td><td><code>interception</code>, <code>αναχαιτιση</code></td><td>INTERCEPT</td></tr>
+<tr><td><code>sweep</code></td><td>—</td><td>SWEEP</td></tr>
+<tr><td><code>escort</code></td><td><code>συνοδεια</code></td><td>ESCORT</td></tr>
+<tr><td><code>sead</code></td><td><code>dead</code>, <code>wildweasel</code></td><td>SEAD</td></tr>
+<tr><td><code>strike</code></td><td><code>bombing</code>, <code>bomb</code>, <code>βομβαρδισμος</code></td><td>STRIKE</td></tr>
+<tr><td><code>cas</code></td><td>—</td><td>CAS</td></tr>
+<tr><td><code>fac</code></td><td><code>afac</code></td><td>FAC</td></tr>
+<tr><td><code>oca</code></td><td>—</td><td>OCA</td></tr>
+<tr><td><code>antiship</code></td><td>—</td><td>ANTISHIP</td></tr>
+<tr><td><code>recon</code></td><td><code>recce</code>, <code>reconnaissance</code></td><td>RECON</td></tr>
+<tr><td><code>transport</code></td><td><code>logistics</code>, <code>cargo</code>, <code>μεταφορα</code></td><td>TRANSPORT</td></tr>
+<tr><td><code>csar</code></td><td><code>rescue</code>, <code>διασωση</code></td><td>CSAR</td></tr>
+<tr><td><code>aar</code></td><td><code>refuel</code>, <code>refueling</code>, <code>tanker</code>, <code>ανεφοδιασμος</code></td><td>AAR</td></tr>
+<tr><td><code>awacs</code></td><td>—</td><td>AWACS</td></tr>
+<tr><td><code>carrier</code></td><td><code>cvn</code>, <code>boat</code>, <code>αεροπλανοφορο</code></td><td>CARRIER</td></tr>
+<tr><td><code>helo</code></td><td><code>helicopter</code>, <code>chopper</code>, <code>ελικοπτερο</code></td><td>HELO</td></tr>
+<tr><td><code>night</code></td><td><code>nite</code>, <code>νυχτα</code></td><td>NIGHT</td></tr>
+<tr><td><code>sam</code></td><td><code>sams</code>, <code>iads</code></td><td>SAM</td></tr>
+<tr><td><code>wwii</code></td><td><code>ww2</code>, <code>warbird</code></td><td>WWII</td></tr>
+<tr><td><code>coldwar</code></td><td>—</td><td>COLDWAR</td></tr>
+<tr><td><code>modern</code></td><td>—</td><td>MODERN</td></tr>
+<tr><td><code>coop</code></td><td><code>multiplayer</code>, <code>mp</code></td><td>COOP</td></tr>
+</table>
+
+<div class="example">
+<strong>Examples:</strong>
+<pre><span class="kw">type</span>:sead
+<span class="kw">task</span>:intercept
+<span class="kw">tag</span>:"csar"
+<span class="kw">type</span>:strike
+</pre>
+</div>
+
+<!-- ---------------------------------------------------------------------- -->
+<h3 id="filter-side">2.4 <code>side:&lt;coalition&gt;</code></h3>
+
+<table>
+<tr><th>Value</th><th>Description</th></tr>
+<tr><td><code>blue</code></td><td>Blue coalition (NATO / coalition forces)</td></tr>
+<tr><td><code>red</code></td><td>Red coalition (enemy / opposition forces)</td></tr>
+<tr><td><code>μπλε</code></td><td>Same as <code>blue</code> (Greek)</td></tr>
+<tr><td><code>κοκκινο</code></td><td>Same as <code>red</code> (Greek)</td></tr>
+</table>
+
+<div class="example">
+<strong>Examples:</strong>
+<pre><span class="kw">side</span>:blue
+<span class="kw">coalition</span>:red
+</pre>
+</div>
+
+<!-- ---------------------------------------------------------------------- -->
+<h3 id="filter-country">2.5 <code>country:&lt;name&gt;</code></h3>
+<p>Substring match against the player countries string. Works with full or partial names.</p>
+
+<table>
+<tr><th>Examples</th><th>Matches</th></tr>
+<tr><td><code>usa</code></td><td>USA, USAF</td></tr>
+<tr><td><code>russia</code></td><td>Russia, Russian Federation</td></tr>
+<tr><td><code>uk</code></td><td>United Kingdom, UK</td></tr>
+<tr><td><code>germany</code></td><td>Germany, German</td></tr>
+<tr><td><code>france</code></td><td>France, French</td></tr>
+<tr><td><code>iran</code></td><td>Iran</td></tr>
+<tr><td><code>syria</code></td><td>Syria</td></tr>
+<tr><td><code>china</code></td><td>China</td></tr>
+</table>
+
+<div class="example">
+<strong>Example:</strong>
+<pre><span class="kw">country</span>:usa</pre>
+</div>
+
+<!-- ---------------------------------------------------------------------- -->
+<h3 id="filter-time">2.6 <code>time:&lt;period&gt;</code></h3>
+
+<table>
+<tr><th>Value</th><th>Description</th></tr>
+<tr><td><code>day</code></td><td>Daytime missions</td></tr>
+<tr><td><code>night</code></td><td>Night missions</td></tr>
+<tr><td><code>dawn</code></td><td>Dawn / early morning</td></tr>
+<tr><td><code>dusk</code></td><td>Dusk / evening</td></tr>
+</table>
+
+<div class="example">
+<strong>Examples:</strong>
+<pre><span class="kw">time</span>:night
+<span class="kw">time</span>:dawn
+</pre>
+</div>
+
+<!-- ---------------------------------------------------------------------- -->
+<h3 id="filter-like">2.7 <code>like:&lt;filename&gt;</code></h3>
+<p>Finds missions whose file names are textually similar. The value can be a full or partial file name (without the <code>.miz</code> extension).</p>
+
+<div class="example">
+<strong>Examples:</strong>
+<pre><span class="kw">like</span>:"op persian storm"
+<span class="kw">like</span>:training
+</pre>
+</div>
+
+<!-- ---------------------------------------------------------------------- -->
+<h3 id="filter-exclude">2.8 Negation / Exclusion — <code>-word</code> or <code>!word</code></h3>
+<p>Prefix any plain word with <code>-</code> or <code>!</code> to <strong>exclude</strong> missions matching that term. The same auto-detection rules apply: aircraft, map, mission type, time, side, or free-text.</p>
+
+<table>
+<tr><th>Query</th><th>What it does</th></tr>
+<tr><td><code>f16 -sead</code></td><td>F-16 missions, excluding SEAD type</td></tr>
+<tr><td><code>syria -carrier</code></td><td>Syria map, no carrier-capable aircraft</td></tr>
+<tr><td><code>sead -syria</code></td><td>SEAD missions, not on Syria</td></tr>
+<tr><td><code>f18 -night</code></td><td>F/A-18 missions, daytime only</td></tr>
+<tr><td><code>caucasus -f16 -a10</code></td><td>Caucasus, excluding both F-16 and A-10</td></tr>
+<tr><td><code>f16 -convoy</code></td><td>F-16 missions, excluding any mentioning "convoy" in text</td></tr>
+</table>
+
+<div class="tip">
+<strong>Tip:</strong> Exclusions stack with all other filters. You can combine structured filters, auto-detected terms, free-text, and exclusions freely.
+</div>
+
+<!-- ====================================================================== -->
+<h2 id="auto">3. Auto-Detection — Plain Text Keywords</h2>
+
+<p>When you type a plain word (without <code>key:</code>), the parser checks it against the following dictionaries. If matched, it becomes a structured filter instead of a free-text term.</p>
+
+<div class="note">
+<strong>Important:</strong> Auto-detected words are removed from the free-text search. If you want to search for the word "syria" <em>inside</em> the briefing text (not as a map filter), use quotes: <code>"syria"</code>.
+</div>
+
+<!-- ---------------------------------------------------------------------- -->
+<h3 id="auto-aircraft">3.1 Aircraft Auto-Detection</h3>
+
+<p>Any plain word matching a known aircraft name or nickname is treated as a <code>plane:</code> filter. This includes all the nicknames and codes listed in section 2.2. <strong>Variant suffixes</strong> are also matched (e.g., <code>f15c</code>, <code>f16c</code>, <code>mig29s</code>, <code>f4e</code>).</p>
+
+<div class="example">
+<strong>Examples:</strong>
+<pre>viper sead syria      <span class="cm">← viper → plane filter, syria → map filter, sead → type filter</span>
+f18 cap               <span class="cm">← f18 → plane filter, cap → type filter</span>
+f15c night             <span class="cm">← f15c → plane filter (StartsWith "f15"), night → time filter</span>
+apache caucasus       <span class="cm">← apache → plane, caucasus → map</span>
+</pre>
+</div>
+
+<!-- ---------------------------------------------------------------------- -->
+<h3 id="auto-map">3.2 Map Auto-Detection</h3>
+
+<p>Plain words matching a known theatre name or alias become a <code>map:</code> filter. Same values as section 2.1.</p>
+
+<div class="example">
+<strong>Examples:</strong>
+<pre>syria
+gulf
+nevada
+caucasus</pre>
+</div>
+
+<!-- ---------------------------------------------------------------------- -->
+<h3 id="auto-type">3.3 Mission Type Auto-Detection</h3>
+
+<p>Plain words matching a known mission type become a <code>type:</code> filter. Same values as section 2.3.</p>
+
+<div class="example">
+<strong>Examples:</strong>
+<pre>sead
+cap
+intercept
+csar
+strike
+recon
+antiship</pre>
+</div>
+
+<!-- ---------------------------------------------------------------------- -->
+<h3 id="auto-time">3.4 Time of Day Auto-Detection</h3>
+
+<table>
+<tr><th>Word</th><th>Greek</th></tr>
+<tr><td><code>day</code></td><td><code>μερα</code>, <code>ημερα</code></td></tr>
+<tr><td><code>night</code>, <code>nite</code></td><td><code>νυχτα</code>, <code>νυχτερινη</code>, <code>νυχτερινο</code></td></tr>
+<tr><td><code>dawn</code>, <code>morning</code></td><td>—</td></tr>
+<tr><td><code>dusk</code>, <code>evening</code>, <code>sunset</code></td><td>—</td></tr>
+</table>
+
+<!-- ---------------------------------------------------------------------- -->
+<h3 id="auto-side">3.5 Coalition Auto-Detection</h3>
+
+<table>
+<tr><th>Word</th><th>Greek</th></tr>
+<tr><td><code>blue</code></td><td><code>μπλε</code></td></tr>
+<tr><td><code>red</code></td><td><code>κοκκινο</code></td></tr>
+</table>
+
+<!-- ====================================================================== -->
+<h2 id="freetext">4. Free-Text Search (FTS)</h2>
+
+<p>Any words that are <strong>not</strong> recognised by auto-detection become free-text terms. The FTS5 engine searches them <strong>simultaneously</strong> across ALL of the following fields:</p>
+
+<table>
+<tr><th>FTS Column</th><th>What it contains</th></tr>
+<tr><td><code>name</code></td><td>Mission file name (hyphens/underscores → spaces)</td></tr>
+<tr><td><code>sortie</code></td><td>Sortie number / description</td></tr>
+<tr><td><code>briefing</code></td><td>Full briefing text: Situation + Blue Task + Red Task + Neutrals Task</td></tr>
+<tr><td><code>units</code></td><td>All unit names, types, and callsigns across all coalitions</td></tr>
+<tr><td><code>tasks</code></td><td>All group task names across all coalitions (CAP, SEAD, Ground Attack, etc.)</td></tr>
+<tr><td><code>tags</code></td><td>Mission tags (parsed from tasks text + AI-tagged, if any)</td></tr>
+<tr><td><code>theatre</code></td><td>Theatre / map name</td></tr>
+</table>
+
+<div class="tip">
+<strong>Tip:</strong> FTS uses <code>unicode61 remove_diacritics 2</code> tokenizer — it handles accented characters (Greek, etc.) automatically, matching both accented and unaccented forms.
+</div>
+
+<h3>Search Behaviour</h3>
+<ul>
+  <li><strong>Prefix matching:</strong> Terms of length ≥ 3 are automatically stem-wilded: <code>f16</code> matches <code>f16</code>, <code>f16c</code>, <code>f16a</code>, etc.</li>
+  <li><strong>AND first:</strong> The search first tries to find missions matching ALL terms. If no results, it falls back to OR.</li>
+  <li><strong>Spelling correction:</strong> If AND and OR both return zero results, the system tries to correct misspelled words using the FTS5 vocabulary.</li>
+  <li><strong>Quoted phrases:</strong> Use <code>"exact phrase"</code> to match a specific sequence of words in the briefing text.</li>
+</ul>
+
+<div class="example">
+<strong>Examples:</strong>
+<pre>
+protect the convoy               <span class="cm">← searches "protect" + "convoy" in briefing/tasks/units</span>
+"destroy sam site"               <span class="cm">← exact phrase match in briefing text</span>
+escort bomber                    <span class="cm">← searches "escort" + "bomber" in all FTS columns</span>
+</pre>
+</div>
+
+<!-- ====================================================================== -->
+<h2 id="greek">5. Greek Language Support</h2>
+
+<p>The search interface fully supports Greek queries. The tokenizer normalises diacritics automatically (τόνο → tonos removed), and the following Greek keywords are recognised:</p>
+
+<table>
+<tr><th>Greek</th><th>English</th><th>Category</th></tr>
+<tr><td><code>συρια</code></td><td>Syria</td><td><span class="tag tag-map">MAP</span></td></tr>
+<tr><td><code>νυχτα</code>, <code>νυχτερινη</code>, <code>νυχτερινο</code></td><td>Night</td><td><span class="tag tag-time">TIME</span></td></tr>
+<tr><td><code>μερα</code>, <code>ημερα</code></td><td>Day</td><td><span class="tag tag-time">TIME</span></td></tr>
+<tr><td><code>μπλε</code></td><td>Blue</td><td><span class="tag tag-side">SIDE</span></td></tr>
+<tr><td><code>κοκκινο</code></td><td>Red</td><td><span class="tag tag-side">SIDE</span></td></tr>
+<tr><td><code>αναχαιτιση</code></td><td>Intercept</td><td><span class="tag tag-type">TYPE</span></td></tr>
+<tr><td><code>βομβαρδισμος</code></td><td>Bombing / Strike</td><td><span class="tag tag-type">TYPE</span></td></tr>
+<tr><td><code>συνοδεια</code></td><td>Escort</td><td><span class="tag tag-type">TYPE</span></td></tr>
+<tr><td><code>μεταφορα</code></td><td>Transport</td><td><span class="tag tag-type">TYPE</span></td></tr>
+<tr><td><code>διασωση</code></td><td>Rescue / CSAR</td><td><span class="tag tag-type">TYPE</span></td></tr>
+<tr><td><code>ανεφοδιασμος</code></td><td>Refueling / Tanker</td><td><span class="tag tag-type">TYPE</span></td></tr>
+<tr><td><code>ελικοπτερο</code>, <code>ελικοπτερα</code></td><td>Helicopter</td><td><span class="tag tag-plane">PLANE</span> / <span class="tag tag-type">TYPE</span></td></tr>
+<tr><td><code>αεροπλανοφορο</code></td><td>Aircraft carrier</td><td><span class="tag tag-type">TYPE</span></td></tr>
+</table>
+
+<div class="example">
+<strong>Examples (Greek queries):</strong>
+<pre>
+βομβαρδισμος συρια                  <span class="cm">← strike missions on Syria map</span>
+νυχτερινη αναχαιτιση                <span class="cm">← night intercept missions</span>
+ελικοπτερο csar                     <span class="cm">← helicopter rescue missions</span>
+αεροπλανοφορο νυχτα                 <span class="cm">← carrier ops at night</span>
+</pre>
+</div>
+
+<!-- ====================================================================== -->
+<h2 id="advanced">6. Advanced Techniques</h2>
+
+<h3>6.1 Multi-Word Phrase Folding</h3>
+<p>Common multi-word expressions are folded into single keywords before parsing:</p>
+<table>
+<tr><th>You type</th><th>Becomes</th></tr>
+<tr><td><code>close air support</code></td><td><code>cas</code></td></tr>
+<tr><td><code>combat air patrol</code></td><td><code>cap</code></td></tr>
+<tr><td><code>air to air</code>, <code>air-to-air</code></td><td><code>a2a</code></td></tr>
+<tr><td><code>air to ground</code>, <code>air-to-ground</code></td><td><code>a2g</code></td></tr>
+<tr><td><code>wild weasel</code>, <code>iron hand</code></td><td><code>sead</code></td></tr>
+<tr><td><code>anti ship</code>, <code>anti-ship</code></td><td><code>antiship</code></td></tr>
+<tr><td><code>search and rescue</code></td><td><code>csar</code></td></tr>
+<tr><td><code>αερος αερος</code></td><td><code>a2a</code></td></tr>
+<tr><td><code>αερος εδαφους</code></td><td><code>a2g</code></td></tr>
+</table>
+
+<h3>6.2 Combining All Techniques</h3>
+<p>You can freely mix structured filters, auto-detected words, and free-text in any order:</p>
+
+<div class="example">
+<strong>Complex examples:</strong>
+<pre>
+plane:f16 sead syria "destroy sam"       <span class="cm">← F-16, SEAD, Syria, free-text "destroy sam"</span>
+f18 cap night "protect the carrier"      <span class="cm">← F-18, CAP, night, free-text phrase</span>
+type:csar helo gulf "extract downed"     <span class="cm">← CSAR, helicopter, Gulf, free-text</span>
+like:"op persian" side:blue              <span class="cm">← similar file names + blue coalition</span>
+f15e strike "deep strike"                <span class="cm">← F-15E, STRIKE type, free-text phrase</span>
+</pre>
+</div>
+
+<h3>6.3 Stop Words</h3>
+<p>The following common words are <strong>ignored</strong> and do not affect search results:</p>
+<p>
+<strong>English:</strong> the, a, an, and, or, of, to, in, on, at, for, with, from, by, is, are, mission, missions, vs, versus, any, all, some, my, me, find, search<br>
+<strong>Greek:</strong> με, και, στο, στη, στην, στον, το, τα, η, ο, οι, του, της, των, για, απο, σε, ενα, μια, αποστολη, αποστολες, βρες, ψαξε, θελω
+</p>
+
+<h3>6.4 Negation / Exclusion — <code>-</code> and <code>!</code></h3>
+<p>Prefix a word with <code>-</code> or <code>!</code> to <strong>exclude</strong> missions that match it. Works with all auto-detected categories and free-text:</p>
+
+<table>
+<tr><th>Query</th><th>Effect</th></tr>
+<tr><td><code>f16 <strong>-sead</strong></code></td><td>F-16 missions, <strong>excluding</strong> SEAD</td></tr>
+<tr><td><code>syria <strong>-carrier</strong></code></td><td>Syria missions, <strong>excluding</strong> carrier ops</td></tr>
+<tr><td><code>f18 <strong>-night</strong></code></td><td>F/A-18 missions, daytime only</td></tr>
+<tr><td><code>caucasus <strong>-f16</strong></code></td><td>Caucasus missions, no F-16</td></tr>
+<tr><td><code>sead <strong>-syria</strong></code></td><td>SEAD missions, not on Syria map</td></tr>
+<tr><td><code>f16 <strong>-convoy</strong></code></td><td>F-16 missions, exclude any that mention "convoy" in briefing</td></tr>
+</table>
+
+<div class="note">
+<strong>Note:</strong> Excluded terms are applied <em>after</em> the main search, both as structured filters (aircraft, map, type) and as free-text FTS negation. You can mix multiple exclusions per query.
+</div>
+
+<h3>6.5 Using Quotes for Literal Text Search</h3>
+<p>
+If you want to force a word to be searched as <strong>free text</strong> in the briefing (rather than being auto-detected as a filter), wrap it in double quotes. This is useful if the word happens to be a known DCS term but you want it matched in text.
+</p>
+
+<div class="example">
+<strong>Example:</strong>
+<pre>
+"syria"                                  <span class="cm">← searches for "syria" in briefing text, NOT as a map filter</span>
+"viper" sead                             <span class="cm">← searches "viper" as text, "sead" as type filter</span>
+</pre>
+</div>
+
+<!-- ====================================================================== -->
+<h2 id="examples">7. Quick-Reference Examples</h2>
+
+<table>
+<tr><th>Query</th><th>What it does</th></tr>
+<tr><td><code>f16</code></td><td>Shows all missions with F-16</td></tr>
+<tr><td><code>f16 syria</code></td><td>F-16 on Syria map</td></tr>
+<tr><td><code>f16 sead syria</code></td><td>F-16 SEAD on Syria</td></tr>
+<tr><td><code>f18 cap night</code></td><td>F-18 combat air patrol at night</td></tr>
+<tr><td><code>apache caucasus</code></td><td>Apache missions in Caucasus</td></tr>
+<tr><td><code>type:csar helo</code></td><td>Helicopter CSAR/search-and-rescue</td></tr>
+<tr><td><code>f15e strike deep</code></td><td>F-15E strike missions + "deep" in briefing</td></tr>
+<tr><td><code>plane:a10 gulf</code></td><td>A-10 in Persian Gulf</td></tr>
+<tr><td><code>f14 carrier night</code></td><td>Tomcat carrier ops at night</td></tr>
+<tr><td><code>type:intercept su27</code></td><td>Intercept missions vs Su-27</td></tr>
+<tr><td><code>map:normandy wwii</code></td><td>WWII missions in Normandy</td></tr>
+<tr><td><code>side:blue f16 cap</code></td><td>Blue coalition F-16 CAP</td></tr>
+<tr><td><code>like:"operation"</code></td><td>Missions with "operation" in filename</td></tr>
+<tr><td><code>νυχτα συρια</code></td><td>Night missions in Syria</td></tr>
+<tr><td><code>βομβαρδισμος ελικοπτερο</code></td><td>Helicopter strike/bombing missions</td></tr>
+<tr><td><code>f15c cap</code></td><td>F-15C CAP (StartsWith variant match)</td></tr>
+<tr><td><code>f16c sead</code></td><td>F-16C SEAD (StartsWith variant match)</td></tr>
+<tr><td><code>f16 -sead</code></td><td>F-16 missions, excluding SEAD</td></tr>
+<tr><td><code>f18 -night</code></td><td>F-18 daytime missions only</td></tr>
+<tr><td><code>syria -carrier</code></td><td>Syria, no carrier ops</td></tr>
+<tr><td><code>sead -syria</code></td><td>SEAD missions, not on Syria</td></tr>
+<tr><td><code>caucasus -f16 -a10</code></td><td>Caucasus, no F-16 or A-10</td></tr>
+</table>
+
+<h2 id="reset">8. Force Re-Index (Reset Cache)</h2>
+<p>If the index becomes corrupted or you want to force a complete re-index from scratch:</p>
+<ol>
+  <li><strong>Close the application</strong> — the database file is locked while the app is running.</li>
+  <li>Delete the file:
+    <pre>%LOCALAPPDATA%\DCSMissionReader\missionindex.db</pre>
+    <p>Which typically resolves to:</p>
+    <pre>C:\Users\&lt;YourUsername&gt;\AppData\Local\DCSMissionReader\missionindex.db</pre>
+  </li>
+  <li><strong>Restart the application</strong> — it will automatically re-index all mission files on the next folder load.</li>
+</ol>
+<div class="tip">
+<strong>Tip:</strong> You can also delete this file while the app is running if you want to force a re-index. Simply select the missions folder again from the "DCS MISSIONS FOLDER" button in the status bar.
+</div>
+<hr style="border-color:#2a3a5a; margin:2em 0;">
+
+<div class="footer">
+DCS Mission Briefing Reader v1.1d — Advanced Search Guide<br>
+Generated: July 2026
+</div>
+
+</body>
+</html>
